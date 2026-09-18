@@ -140,6 +140,15 @@
   footer.note{ color: var(--muted); font-size: 0.85rem; line-height: 1.6; margin-top: 6px; }
   hr.div{ border: none; border-top: 1px solid var(--line); margin: 18px 0; }
 
+  .semester-bar{
+    display:flex; align-items:center; gap: 12px; flex-wrap: wrap;
+    padding: 10px 16px; margin-bottom: 22px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+  }
+  .semester-bar label{ font-size: 0.85rem; font-weight: 600; color: var(--muted); white-space: nowrap; }
+  .semester-bar select{ font-size: 0.9rem; padding: 6px 10px; }
+  .sem-badge{ display:inline-block; padding: 2px 9px; border-radius: 10px; font-size: 0.76rem; font-weight: 600; background: #E8E0F0; color: #5B3A8C; }
+
   .report-doc{ background:#fff; border: 1px solid var(--line); border-radius: 4px; padding: 26px 24px; }
   .report-doc .rhead{ text-align:center; margin-bottom: 3px; font-size: 0.95rem; }
   .report-doc .rhead.name{ font-size: 1.1rem; font-family:"Newsreader",serif; font-weight:600; }
@@ -195,6 +204,15 @@
   <div id="loadingScreen" class="empty" hidden>Loading…</div>
 
   <div id="appRoot" hidden>
+    <div class="semester-bar">
+      <label>Active Semester:</label>
+      <select id="globalSemester"></select>
+      <input type="text" id="newSemInput" placeholder="e.g. 1, 2, 3…" style="width:100px;padding:6px 10px;font-size:0.9rem;" hidden>
+      <button class="btn small" id="addSemBtn">+ Add semester</button>
+      <button class="btn small primary" id="confirmSemBtn" hidden>Create</button>
+      <button class="btn small" id="cancelSemBtn" hidden>Cancel</button>
+      <span class="sub" style="margin:0;">Students and attendance are filtered by this semester.</span>
+    </div>
     <nav class="tabs">
       <button data-tab="dashboard" class="active">Dashboard</button>
       <button data-tab="mark">Mark attendance</button>
@@ -268,8 +286,8 @@
     <!-- STUDENTS -->
     <section class="view" id="view-students">
       <div class="panel">
-        <h2>Class list</h2>
-        <div class="sub">Add every student once — you'll mark them present or absent each class after this.</div>
+        <h2>Class list <span class="sub" id="studentsForSemLabel" style="font-family:inherit;font-weight:400;"></span></h2>
+        <div class="sub">Add every student once — they belong to the currently selected semester. Switch the semester in the bar above to manage a different batch.</div>
         <div class="field-group">
           <input type="text" id="newRoll" placeholder="Roll no / enrolment no">
           <input type="text" id="newName" placeholder="Full name">
@@ -277,11 +295,11 @@
         </div>
         <div class="table-scroll">
           <table id="studentsTable">
-            <thead><tr><th>Roll no</th><th>Name</th><th></th></tr></thead>
+            <thead><tr><th>Roll no</th><th>Name</th><th>Semester</th><th></th></tr></thead>
             <tbody></tbody>
           </table>
         </div>
-        <div class="empty" id="studentsEmpty" hidden>No students yet — add your first one above.</div>
+        <div class="empty" id="studentsEmpty" hidden>No students yet for this semester — add your first one above.</div>
       </div>
     </section>
 
@@ -428,6 +446,8 @@
       sessions: Array.isArray(raw.sessions) ? raw.sessions : [],
       settings: Object.assign({}, DEFAULT_SETTINGS, raw.settings || {})
     };
+    // Ensure every student has a semester field
+    st.students.forEach(s => { if(!s.semester) s.semester = ''; });
     const legacyNeeded = st.sessions.some(s => !s.subjectId);
     if(legacyNeeded){
       let legacy = st.subjects.find(su => su.id === "legacy");
@@ -442,6 +462,7 @@
     return st;
   }
 
+  let activeSemester = '';
   let state = { students: [], subjects: [], sessions: [], settings: Object.assign({}, DEFAULT_SETTINGS) };
   let markTemp = {};
   let editingSessionId = null;
@@ -499,7 +520,27 @@
     }
   }
 
-  function sortedStudents(){
+  function allSemesters(){
+    const set = new Set();
+    state.students.forEach(s => { if(s.semester) set.add(s.semester); });
+    // Also include semesters saved in settings (created but possibly without students yet)
+    if(state.settings.semesters){
+      state.settings.semesters.split(',').forEach(s => { const t = s.trim(); if(t) set.add(t); });
+    }
+    return [...set].sort((a,b) => {
+      const na = parseInt(a), nb = parseInt(b);
+      if(!isNaN(na) && !isNaN(nb)) return na - nb;
+      return a.localeCompare(b, undefined, {numeric:true});
+    });
+  }
+
+  function sortedStudents(semester){
+    const sem = semester !== undefined ? semester : activeSemester;
+    return [...state.students]
+      .filter(s => !sem || s.semester === sem)
+      .sort((a,b) => a.roll.localeCompare(b.roll, undefined, {numeric:true}));
+  }
+  function sortedStudentsAll(){
     return [...state.students].sort((a,b) => a.roll.localeCompare(b.roll, undefined, {numeric:true}));
   }
   function sortedSubjects(){
@@ -540,6 +581,85 @@
     if(rangeVal === "custom") return { fromISO: fromInput.value || null, toISO: toInput.value || null };
     return { fromISO: monthsAgoISO(Number(rangeVal)), toISO: todayISO() };
   }
+
+  // ---------- Global Semester Selector ----------
+  const globalSemSelect = document.getElementById("globalSemester");
+
+  function populateGlobalSemester(){
+    const sems = allSemesters();
+    const prev = globalSemSelect.value;
+    globalSemSelect.innerHTML = '';
+    if(sems.length === 0){
+      const opt = document.createElement('option');
+      opt.value = ''; opt.textContent = 'No semesters yet — add students first';
+      globalSemSelect.appendChild(opt);
+      activeSemester = '';
+      return;
+    }
+    sems.forEach(sem => {
+      const opt = document.createElement('option');
+      opt.value = sem;
+      opt.textContent = 'Semester ' + sem;
+      globalSemSelect.appendChild(opt);
+    });
+    if(sems.includes(prev)) globalSemSelect.value = prev;
+    else globalSemSelect.value = sems[0];
+    activeSemester = globalSemSelect.value;
+  }
+
+  globalSemSelect.addEventListener('change', () => {
+    activeSemester = globalSemSelect.value;
+    renderAllForTab(currentTabName());
+  });
+
+  // Add-semester toggle
+  const newSemInput = document.getElementById('newSemInput');
+  const addSemBtn = document.getElementById('addSemBtn');
+  const confirmSemBtn = document.getElementById('confirmSemBtn');
+  const cancelSemBtn = document.getElementById('cancelSemBtn');
+
+  addSemBtn.addEventListener('click', () => {
+    newSemInput.hidden = false;
+    confirmSemBtn.hidden = false;
+    cancelSemBtn.hidden = false;
+    addSemBtn.hidden = true;
+    newSemInput.value = '';
+    newSemInput.focus();
+  });
+  cancelSemBtn.addEventListener('click', () => {
+    newSemInput.hidden = true;
+    confirmSemBtn.hidden = true;
+    cancelSemBtn.hidden = true;
+    addSemBtn.hidden = false;
+  });
+  confirmSemBtn.addEventListener('click', () => {
+    const val = newSemInput.value.trim();
+    if(!val){ alert('Enter a semester number or name.'); return; }
+    if(allSemesters().includes(val)){
+      // Semester already exists — just switch to it
+      globalSemSelect.value = val;
+      activeSemester = val;
+    } else {
+      // Create a placeholder student-less entry by adding a hidden marker
+      // Actually, we just add the option and set activeSemester — students added next will carry this semester
+      const opt = document.createElement('option');
+      opt.value = val;
+      opt.textContent = 'Semester ' + val;
+      globalSemSelect.appendChild(opt);
+      globalSemSelect.value = val;
+      activeSemester = val;
+      // Save the semester in settings so it persists even without students
+      if(!state.settings.semesters) state.settings.semesters = '';
+      const existing = state.settings.semesters ? state.settings.semesters.split(',') : [];
+      if(!existing.includes(val)){ existing.push(val); state.settings.semesters = existing.join(','); pushSave(); }
+    }
+    newSemInput.hidden = true;
+    confirmSemBtn.hidden = true;
+    cancelSemBtn.hidden = true;
+    addSemBtn.hidden = false;
+    renderAllForTab(currentTabName());
+  });
+  newSemInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') confirmSemBtn.click(); });
 
   // ---------- Tabs ----------
   const tabButtons = document.querySelectorAll("nav.tabs button");
@@ -608,9 +728,11 @@
     const { fromISO, toISO } = rangeToDates(dashRange.value, dashFrom, dashTo);
     const sessions = filterSessions({ subjectId: dashSubject.value, type: dashType.value, fromISO, toISO });
     const students = sortedStudents();
+    const semStudentIds = new Set(students.map(s => s.id));
 
     let sumPresent = 0, sumTotal = 0;
     const rows = students.map(st => {
+      const semSessions = sessions.filter(s => Object.prototype.hasOwnProperty.call(s.records, st.id));
       const { present, total } = studentStatsFor(st.id, sessions);
       sumPresent += present; sumTotal += total;
       return { st, present, total };
@@ -649,18 +771,21 @@
     tbody.innerHTML = "";
     document.getElementById("studentsEmpty").hidden = students.length > 0;
     document.getElementById("studentsTable").hidden = students.length === 0;
+    document.getElementById("studentsForSemLabel").textContent = activeSemester ? `— Semester ${activeSemester}` : '';
 
     students.forEach(st => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${escapeHtml(st.roll)}</td>
         <td>${escapeHtml(st.name)}</td>
+        <td><span class="sem-badge">Sem ${escapeHtml(st.semester || '—')}</span></td>
         <td style="text-align:right;"><button class="btn small danger" data-id="${st.id}">Remove</button></td>
       `;
       tr.querySelector("button").addEventListener("click", () => {
         if(confirm(`Remove ${st.name} from the class list? Their past attendance records will also be removed.`)){
           state.students = state.students.filter(s => s.id !== st.id);
           state.sessions.forEach(s => { delete s.records[st.id]; });
+          populateGlobalSemester();
           renderStudents(); renderDashboard();
           pushSave();
         }
@@ -675,12 +800,14 @@
     const roll = rollInput.value.trim();
     const name = nameInput.value.trim();
     if(!roll || !name){ alert("Enter both a roll number and a name."); return; }
-    if(state.students.some(s => s.roll.toLowerCase() === roll.toLowerCase())){
-      alert("That roll number is already on the list."); return;
+    if(!activeSemester){ alert("Select a semester first using the semester selector above."); return; }
+    if(state.students.some(s => s.roll.toLowerCase() === roll.toLowerCase() && s.semester === activeSemester)){
+      alert("That roll number is already on the list for this semester."); return;
     }
-    state.students.push({ id: uid(), roll, name });
+    state.students.push({ id: uid(), roll, name, semester: activeSemester });
     rollInput.value = ""; nameInput.value = "";
     rollInput.focus();
+    populateGlobalSemester();
     renderStudents(); renderDashboard();
     pushSave();
   });
@@ -751,17 +878,18 @@
     document.getElementById("markBody").hidden = state.subjects.length === 0;
     if(state.subjects.length === 0) return;
 
+    const semStudents = sortedStudents();
     const existing = state.sessions.find(s => s.date === dateISO && s.subjectId === subjectId && s.type === type);
     markTemp = {};
     if(existing){
       editingSessionId = existing.id;
-      state.students.forEach(st => {
+      semStudents.forEach(st => {
         markTemp[st.id] = Object.prototype.hasOwnProperty.call(existing.records, st.id) ? existing.records[st.id] : true;
       });
       document.getElementById("sessionStatus").textContent = "Editing the class already recorded for this date, subject and type.";
     } else {
       editingSessionId = null;
-      state.students.forEach(st => { markTemp[st.id] = true; });
+      semStudents.forEach(st => { markTemp[st.id] = true; });
       document.getElementById("sessionStatus").textContent = "";
     }
     renderMarkList();
@@ -796,10 +924,10 @@
   }
 
   document.getElementById("markAllPresent").addEventListener("click", () => {
-    state.students.forEach(st => markTemp[st.id] = true); renderMarkList();
+    sortedStudents().forEach(st => markTemp[st.id] = true); renderMarkList();
   });
   document.getElementById("markAllAbsent").addEventListener("click", () => {
-    state.students.forEach(st => markTemp[st.id] = false); renderMarkList();
+    sortedStudents().forEach(st => markTemp[st.id] = false); renderMarkList();
   });
 
   document.getElementById("saveSession").addEventListener("click", () => {
@@ -809,7 +937,7 @@
     if(!markSubject.value){ alert("Add and pick a subject first."); return; }
 
     const records = {};
-    state.students.forEach(st => { records[st.id] = markTemp[st.id] !== false; });
+    sortedStudents().forEach(st => { records[st.id] = markTemp[st.id] !== false; });
 
     if(editingSessionId){
       const s = state.sessions.find(s => s.id === editingSessionId);
@@ -933,7 +1061,7 @@
 
     const rows = sortedStudents().map((st, i) => {
       const { present, total } = studentStatsFor(st.id, sessions);
-      return { sno: i+1, roll: st.roll, name: st.name, total, present, pct: total>0 ? fmtPct((present/total)*100) : "0" };
+      return { sno: i+1, roll: st.roll, name: st.name, semester: st.semester, total, present, pct: total>0 ? fmtPct((present/total)*100) : "0" };
     });
 
     const typeLabel = repType.value === "All" ? "Theory & Lab" : repType.value;
@@ -1066,6 +1194,7 @@
       document.getElementById("appRoot").hidden = false;
       document.getElementById("refreshBtn").hidden = false;
       setStatus("Synced");
+      populateGlobalSemester();
       renderAllForTab(currentTabName());
     }catch(err){
       console.error(err);
@@ -1091,6 +1220,7 @@
     try{
       await fetchAll();
       setStatus("Synced");
+      populateGlobalSemester();
       renderAllForTab(currentTabName());
     }catch(err){
       setStatus("Refresh failed — check connection", true);
@@ -1153,12 +1283,12 @@
   });
 
   document.getElementById("exportCsv").addEventListener("click", () => {
-    const rows = [["Date","Subject Code","Subject Name","Type","Roll No","Student Name","Present"]];
+    const rows = [["Date","Subject Code","Subject Name","Type","Roll No","Student Name","Semester","Present"]];
     [...state.sessions].sort((a,b)=>a.date.localeCompare(b.date)).forEach(s => {
       const sub = state.subjects.find(x => x.id === s.subjectId) || { code:"", name:"General" };
       sortedStudents().forEach(st => {
         if(Object.prototype.hasOwnProperty.call(s.records, st.id)){
-          rows.push([s.date, sub.code, sub.name, s.type, st.roll, st.name, s.records[st.id] ? "Y" : "N"]);
+          rows.push([s.date, sub.code, sub.name, s.type, st.roll, st.name, st.semester || '', s.records[st.id] ? "Y" : "N"]);
         }
       });
     });
@@ -1180,6 +1310,7 @@
         if(!Array.isArray(parsed.students) || !Array.isArray(parsed.sessions)) throw new Error("bad shape");
         if(!confirm("This overwrites everything currently in your connected Google Sheet with this snapshot. Continue?")) return;
         state = normalizeState(parsed);
+        populateGlobalSemester();
         renderAllForTab("dashboard"); renderStudents(); renderSubjects(); renderHistory(); renderMarkTab(); renderReport();
         pushSave();
         alert("Snapshot restored and saved to your sheet.");
@@ -1195,6 +1326,7 @@
     if(confirm("Erase every student, subject and recorded class from your connected Google Sheet? This can't be undone.")){
       if(confirm("Are you sure? Consider exporting a snapshot first.")){
         state = { students: [], subjects: [], sessions: [], settings: Object.assign({}, DEFAULT_SETTINGS) };
+        populateGlobalSemester();
         renderAllForTab("dashboard"); renderStudents(); renderSubjects(); renderHistory(); renderMarkTab(); renderReport();
         pushSave();
       }
