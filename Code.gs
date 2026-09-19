@@ -34,7 +34,13 @@ function getOrCreateSheet(name, headers){
 }
 
 function ensureSheets(){
-  getOrCreateSheet(SHEET_NAMES.students, ['id','roll','name']);
+  const studentSh = getOrCreateSheet(SHEET_NAMES.students, ['id','roll','name','semester']);
+  // If the Students sheet existed before the semester feature, add the column header
+  const headers = studentSh.getRange(1, 1, 1, studentSh.getLastColumn()).getValues()[0];
+  if(headers.indexOf('semester') === -1){
+    const nextCol = headers.length + 1;
+    studentSh.getRange(1, nextCol).setValue('semester');
+  }
   getOrCreateSheet(SHEET_NAMES.subjects, ['id','code','name']);
   getOrCreateSheet(SHEET_NAMES.attendance, ['date','subjectId','type','studentId','present']);
   getOrCreateSheet(SHEET_NAMES.settings, ['key','value']);
@@ -65,7 +71,7 @@ function formatDateVal(v){
 function getAllData(){
   const ss = getSS();
   const students = sheetToObjects(ss.getSheetByName(SHEET_NAMES.students))
-    .map(s => ({ id: String(s.id), roll: String(s.roll), name: String(s.name) }));
+    .map(s => ({ id: String(s.id), roll: String(s.roll), name: String(s.name), semester: String(s.semester || '') }));
   const subjects = sheetToObjects(ss.getSheetByName(SHEET_NAMES.subjects))
     .map(s => ({ id: String(s.id), code: String(s.code || ''), name: String(s.name) }));
   const attendanceRows = sheetToObjects(ss.getSheetByName(SHEET_NAMES.attendance));
@@ -113,7 +119,7 @@ function writeObjects(sh, headers, rows){
 
 function saveAllData(body){
   const ss = getSS();
-  writeObjects(ss.getSheetByName(SHEET_NAMES.students), ['id','roll','name'], body.students || []);
+  writeObjects(ss.getSheetByName(SHEET_NAMES.students), ['id','roll','name','semester'], body.students || []);
   writeObjects(ss.getSheetByName(SHEET_NAMES.subjects), ['id','code','name'], body.subjects || []);
 
   const attendanceRows = [];
