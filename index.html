@@ -1,1005 +1,1595 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Attendance Register</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,500;0,600;1,500&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --paper: #EFF2EF;
-    --panel: #FBFCFB;
-    --ink: #1B2430;
-    --muted: #616B63;
-    --line: #D3DAD2;
-    --present: #2F6F4E;
-    --present-bg: #E4EEE7;
-    --absent: #B4483A;
-    --absent-bg: #F3E4E1;
-    --warn: #9C7A1E;
-    --warn-bg: #F1EAD6;
-    --theory-bg: #EDEFF5;
-    --theory-fg: #3B4A7A;
-    --lab-bg: #F5ECD9;
-    --lab-fg: #8A5A1E;
-  }
-  *{ box-sizing: border-box; }
-  html{ -webkit-text-size-adjust: 100%; }
-  body{
-    margin:0;
-    background: var(--paper);
-    color: var(--ink);
-    font-family: "Work Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    font-variant-numeric: tabular-nums;
-  }
-  h1,h2,h3{
-    font-family: "Newsreader", Georgia, "Times New Roman", serif;
-    font-weight: 600;
-    margin: 0;
-  }
-  button{ font-family: inherit; }
-  .wrap{ max-width: 980px; margin: 0 auto; padding: 28px 20px 80px; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attendance Register</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,500;0,600;1,500&family=Work+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --paper: #EFF2EF;
+      --panel: #FBFCFB;
+      --ink: #1B2430;
+      --muted: #616B63;
+      --line: #D3DAD2;
+      --present: #2F6F4E;
+      --present-bg: #E4EEE7;
+      --absent: #B4483A;
+      --absent-bg: #F3E4E1;
+      --warn: #9C7A1E;
+      --warn-bg: #F1EAD6;
+      --theory-bg: #EDEFF5;
+      --theory-fg: #3B4A7A;
+      --lab-bg: #F5ECD9;
+      --lab-fg: #8A5A1E;
+    }
 
-  header.top{
-    display:flex; align-items:baseline; justify-content: space-between; flex-wrap: wrap; gap: 8px;
-    border-bottom: 1px solid var(--line);
-    padding-bottom: 18px; margin-bottom: 22px;
-  }
-  header.top h1{ font-size: 1.7rem; letter-spacing: -0.01em; }
-  header.top .today{ color: var(--muted); font-size: 0.92rem; }
-  .sync-status{ color: var(--muted); font-size: 0.85rem; }
+    * {
+      box-sizing: border-box;
+    }
 
-  nav.tabs{
-    display:flex; gap: 2px; flex-wrap: wrap;
-    border-bottom: 1px solid var(--line);
-    margin-bottom: 26px;
-  }
-  nav.tabs button{
-    background: none; border: 1px solid transparent; border-bottom: none;
-    padding: 10px 14px; margin-bottom: -1px;
-    font-size: 0.93rem; color: var(--muted); cursor: pointer;
-    border-radius: 6px 6px 0 0;
-  }
-  nav.tabs button.active{
-    color: var(--ink); font-weight: 600;
-    background: var(--panel);
-    border-color: var(--line);
-    border-bottom: 1px solid var(--panel);
-  }
-  nav.tabs button:hover:not(.active){ color: var(--ink); }
+    html {
+      -webkit-text-size-adjust: 100%;
+    }
 
-  section.view{ display:none; }
-  section.view.active{ display:block; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Work Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-variant-numeric: tabular-nums;
+    }
 
-  .stats{
-    display:flex; border: 1px solid var(--line); border-radius: 8px; background: var(--panel);
-    margin-bottom: 24px; overflow: hidden; flex-wrap: wrap;
-  }
-  .stats .stat{ flex: 1; min-width: 140px; padding: 16px 18px; text-align: left; }
-  .stats .stat + .stat{ border-left: 1px solid var(--line); }
-  .stats .stat .num{ font-family: "Newsreader", serif; font-size: 1.8rem; line-height: 1; font-weight: 600; }
-  .stats .stat .label{ color: var(--muted); font-size: 0.8rem; margin-top: 4px; }
+    h1,
+    h2,
+    h3 {
+      font-family: "Newsreader", Georgia, "Times New Roman", serif;
+      font-weight: 600;
+      margin: 0;
+    }
 
-  .panel{
-    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
-    padding: 20px; margin-bottom: 20px;
-  }
-  .panel h2{ font-size: 1.15rem; margin-bottom: 4px; }
-  .panel .sub{ color: var(--muted); font-size: 0.88rem; margin-bottom: 14px; }
-  .panel ol.steps{ margin: 0 0 14px 20px; padding: 0; color: var(--muted); font-size: 0.88rem; line-height: 1.7; }
+    button {
+      font-family: inherit;
+    }
 
-  table{ width: 100%; border-collapse: collapse; font-size: 0.93rem; }
-  th, td{ text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); }
-  th{ color: var(--muted); font-weight: 600; font-size: 0.8rem; }
-  tbody tr:last-child td{ border-bottom: none; }
-  .table-scroll{ overflow-x: auto; }
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 28px 20px 80px;
+    }
 
-  .pct{ font-weight: 600; }
-  .pct.good{ color: var(--present); }
-  .pct.warn{ color: var(--warn); }
-  .pct.bad{ color: var(--absent); }
+    header.top {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 18px;
+      margin-bottom: 22px;
+    }
 
-  .badge{ display:inline-block; padding: 2px 9px; border-radius: 10px; font-size: 0.76rem; font-weight: 600; white-space: nowrap; }
-  .badge.theory{ background: var(--theory-bg); color: var(--theory-fg); }
-  .badge.lab{ background: var(--lab-bg); color: var(--lab-fg); }
+    header.top h1 {
+      font-size: 1.7rem;
+      letter-spacing: -0.01em;
+    }
 
-  .row-inline{ display:flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-  .filters{ display:flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
-  .filters label{ font-size: 0.82rem; color: var(--muted); display:block; margin-bottom: 3px; }
-  .field{ display:flex; flex-direction: column; }
+    header.top .today {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
 
-  input[type=text], input[type=number], input[type=date], select{
-    font-family: inherit; font-size: 0.93rem; padding: 8px 10px;
-    border: 1px solid var(--line); border-radius: 6px; background: #fff; color: var(--ink);
-  }
-  input:focus, button:focus, select:focus{ outline: 2px solid var(--present); outline-offset: 1px; }
+    .sync-status {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
 
-  .btn{ font-size: 0.9rem; padding: 8px 14px; border-radius: 6px; border: 1px solid var(--line); background: #fff; color: var(--ink); cursor: pointer; }
-  .btn:hover{ border-color: var(--muted); }
-  .btn:disabled{ opacity: 0.55; cursor: default; }
-  .btn.primary{ background: var(--ink); border-color: var(--ink); color: #fff; }
-  .btn.primary:hover{ opacity: 0.9; }
-  .btn.danger{ color: var(--absent); border-color: var(--absent-bg); }
-  .btn.danger:hover{ background: var(--absent-bg); }
-  .btn.link{ background:none; border:none; color: var(--present); padding: 4px 2px; text-decoration: underline; text-underline-offset: 2px; }
-  .btn.link:hover{ color: var(--ink); }
-  .btn.small{ padding: 5px 10px; font-size: 0.82rem; }
+    nav.tabs {
+      display: flex;
+      gap: 2px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 26px;
+    }
 
-  .mark-toggle{ display:flex; gap: 6px; }
-  .mark-btn{ padding: 6px 12px; border-radius: 6px; border: 1px solid var(--line); background: #fff; font-size: 0.85rem; cursor: pointer; color: var(--muted); }
-  .mark-btn.present.on{ background: var(--present-bg); border-color: var(--present); color: var(--present); font-weight: 600; }
-  .mark-btn.absent.on{ background: var(--absent-bg); border-color: var(--absent); color: var(--absent); font-weight: 600; }
-  .mark-btn.theory.on{ background: var(--theory-bg); border-color: var(--theory-fg); color: var(--theory-fg); font-weight: 600; }
-  .mark-btn.lab.on{ background: var(--lab-bg); border-color: var(--lab-fg); color: var(--lab-fg); font-weight: 600; }
+    nav.tabs button {
+      background: none;
+      border: 1px solid transparent;
+      border-bottom: none;
+      padding: 10px 14px;
+      margin-bottom: -1px;
+      font-size: 0.93rem;
+      color: var(--muted);
+      cursor: pointer;
+      border-radius: 6px 6px 0 0;
+    }
 
-  .empty{ color: var(--muted); font-size: 0.92rem; padding: 18px 4px; }
-  .field-group{ display:flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
-  .field-group input, .field-group select{ flex: 1; min-width: 120px; }
-  footer.note{ color: var(--muted); font-size: 0.85rem; line-height: 1.6; margin-top: 6px; }
-  hr.div{ border: none; border-top: 1px solid var(--line); margin: 18px 0; }
+    nav.tabs button.active {
+      color: var(--ink);
+      font-weight: 600;
+      background: var(--panel);
+      border-color: var(--line);
+      border-bottom: 1px solid var(--panel);
+    }
 
-  .semester-bar{
-    display:flex; align-items:center; gap: 12px; flex-wrap: wrap;
-    padding: 10px 16px; margin-bottom: 22px;
-    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
-  }
-  .semester-bar label{ font-size: 0.85rem; font-weight: 600; color: var(--muted); white-space: nowrap; }
-  .semester-bar select{ font-size: 0.9rem; padding: 6px 10px; }
-  .sem-badge{ display:inline-block; padding: 2px 9px; border-radius: 10px; font-size: 0.76rem; font-weight: 600; background: #E8E0F0; color: #5B3A8C; }
+    nav.tabs button:hover:not(.active) {
+      color: var(--ink);
+    }
 
-  .report-doc{ background:#fff; border: 1px solid var(--line); border-radius: 4px; padding: 26px 24px; }
-  .report-doc .rhead{ text-align:center; margin-bottom: 3px; font-size: 0.95rem; }
-  .report-doc .rhead.name{ font-size: 1.1rem; font-family:"Newsreader",serif; font-weight:600; }
-  .report-doc table{ margin-top: 16px; }
-  .report-doc th, .report-doc td{ border: 1px solid var(--ink); font-size: 0.83rem; padding: 6px 8px; }
-  .report-doc .sig{ margin-top: 46px; text-align: right; font-size: 0.9rem; }
+    section.view {
+      display: none;
+    }
 
-  @media (max-width: 560px){
-    .stats{ flex-direction: column; }
-    .stats .stat + .stat{ border-left: none; border-top: 1px solid var(--line); }
-    header.top h1{ font-size: 1.4rem; }
-  }
-  @media print{
-    nav.tabs, header.top, footer.note, .no-print{ display:none !important; }
-    body{ background:#fff; }
-    .wrap{ padding: 0; max-width: none; }
-    .report-doc{ border:none; }
-  }
-</style>
+    section.view.active {
+      display: block;
+    }
+
+    .stats {
+      display: flex;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      margin-bottom: 24px;
+      overflow: hidden;
+      flex-wrap: wrap;
+    }
+
+    .stats .stat {
+      flex: 1;
+      min-width: 140px;
+      padding: 16px 18px;
+      text-align: left;
+    }
+
+    .stats .stat+.stat {
+      border-left: 1px solid var(--line);
+    }
+
+    .stats .stat .num {
+      font-family: "Newsreader", serif;
+      font-size: 1.8rem;
+      line-height: 1;
+      font-weight: 600;
+    }
+
+    .stats .stat .label {
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-top: 4px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .panel h2 {
+      font-size: 1.15rem;
+      margin-bottom: 4px;
+    }
+
+    .panel .sub {
+      color: var(--muted);
+      font-size: 0.88rem;
+      margin-bottom: 14px;
+    }
+
+    .panel ol.steps {
+      margin: 0 0 14px 20px;
+      padding: 0;
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.7;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.93rem;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .table-scroll {
+      overflow-x: auto;
+    }
+
+    .pct {
+      font-weight: 600;
+    }
+
+    .pct.good {
+      color: var(--present);
+    }
+
+    .pct.warn {
+      color: var(--warn);
+    }
+
+    .pct.bad {
+      color: var(--absent);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 10px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .badge.theory {
+      background: var(--theory-bg);
+      color: var(--theory-fg);
+    }
+
+    .badge.lab {
+      background: var(--lab-bg);
+      color: var(--lab-fg);
+    }
+
+    .row-inline {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filters {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .filters label {
+      font-size: 0.82rem;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+    }
+
+    input[type=text],
+    input[type=number],
+    input[type=date],
+    select {
+      font-family: inherit;
+      font-size: 0.93rem;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    input:focus,
+    button:focus,
+    select:focus {
+      outline: 2px solid var(--present);
+      outline-offset: 1px;
+    }
+
+    .btn {
+      font-size: 0.9rem;
+      padding: 8px 14px;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      border-color: var(--muted);
+    }
+
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: default;
+    }
+
+    .btn.primary {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: #fff;
+    }
+
+    .btn.primary:hover {
+      opacity: 0.9;
+    }
+
+    .btn.danger {
+      color: var(--absent);
+      border-color: var(--absent-bg);
+    }
+
+    .btn.danger:hover {
+      background: var(--absent-bg);
+    }
+
+    .btn.link {
+      background: none;
+      border: none;
+      color: var(--present);
+      padding: 4px 2px;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .btn.link:hover {
+      color: var(--ink);
+    }
+
+    .btn.small {
+      padding: 5px 10px;
+      font-size: 0.82rem;
+    }
+
+    .mark-toggle {
+      display: flex;
+      gap: 6px;
+    }
+
+    .mark-btn {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+      background: #fff;
+      font-size: 0.85rem;
+      cursor: pointer;
+      color: var(--muted);
+    }
+
+    .mark-btn.present.on {
+      background: var(--present-bg);
+      border-color: var(--present);
+      color: var(--present);
+      font-weight: 600;
+    }
+
+    .mark-btn.absent.on {
+      background: var(--absent-bg);
+      border-color: var(--absent);
+      color: var(--absent);
+      font-weight: 600;
+    }
+
+    .mark-btn.theory.on {
+      background: var(--theory-bg);
+      border-color: var(--theory-fg);
+      color: var(--theory-fg);
+      font-weight: 600;
+    }
+
+    .mark-btn.lab.on {
+      background: var(--lab-bg);
+      border-color: var(--lab-fg);
+      color: var(--lab-fg);
+      font-weight: 600;
+    }
+
+    .empty {
+      color: var(--muted);
+      font-size: 0.92rem;
+      padding: 18px 4px;
+    }
+
+    .field-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .field-group input,
+    .field-group select {
+      flex: 1;
+      min-width: 120px;
+    }
+
+    footer.note {
+      color: var(--muted);
+      font-size: 0.85rem;
+      line-height: 1.6;
+      margin-top: 6px;
+    }
+
+    hr.div {
+      border: none;
+      border-top: 1px solid var(--line);
+      margin: 18px 0;
+    }
+
+    .semester-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 10px 16px;
+      margin-bottom: 22px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .semester-bar label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .semester-bar select {
+      font-size: 0.9rem;
+      padding: 6px 10px;
+    }
+
+    .sem-badge {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 10px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      background: #E8E0F0;
+      color: #5B3A8C;
+    }
+
+    .report-doc {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 26px 24px;
+    }
+
+    .report-doc .rhead {
+      text-align: center;
+      margin-bottom: 3px;
+      font-size: 0.95rem;
+    }
+
+    .report-doc .rhead.name {
+      font-size: 1.1rem;
+      font-family: "Newsreader", serif;
+      font-weight: 600;
+    }
+
+    .report-doc table {
+      margin-top: 16px;
+    }
+
+    .report-doc th,
+    .report-doc td {
+      border: 1px solid var(--ink);
+      font-size: 0.83rem;
+      padding: 6px 8px;
+    }
+
+    .report-doc .sig {
+      margin-top: 46px;
+      text-align: right;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 560px) {
+      .stats {
+        flex-direction: column;
+      }
+
+      .stats .stat+.stat {
+        border-left: none;
+        border-top: 1px solid var(--line);
+      }
+
+      header.top h1 {
+        font-size: 1.4rem;
+      }
+    }
+
+    @media print {
+
+      nav.tabs,
+      header.top,
+      footer.note,
+      .no-print {
+        display: none !important;
+      }
+
+      body {
+        background: #fff;
+      }
+
+      .wrap {
+        padding: 0;
+        max-width: none;
+      }
+
+      .report-doc {
+        border: none;
+      }
+    }
+  </style>
 </head>
+
 <body>
-<div class="wrap">
+  <div class="wrap">
 
-  <header class="top">
-    <h1>Attendance Register</h1>
-    <div class="row-inline" style="gap:14px;">
-      <span class="today" id="todayLabel"></span>
-      <span class="sync-status" id="syncStatus"></span>
-      <button class="btn small" id="refreshBtn" hidden title="Refreshes from the sheet, or retries a failed save first">Refresh</button>
-    </div>
-  </header>
-
-  <!-- CONNECT SCREEN -->
-  <div id="connectScreen">
-    <div class="panel">
-      <h2>Connect your Google Sheet</h2>
-      <div class="sub">This page stores nothing on its own — it reads and writes a Google Sheet you control, through a small Apps Script "Web app" that sits in front of it.</div>
-      <ol class="steps">
-        <li>Create a new, blank Google Sheet.</li>
-        <li>In it, go to <strong>Extensions → Apps Script</strong>, delete the placeholder code, and paste in the script provided with this app (<code>Code.gs</code>).</li>
-        <li><strong>Deploy → New deployment →</strong> choose type <strong>Web app</strong>. Set "Execute as" to <strong>Me</strong> and "Who has access" to <strong>Anyone</strong>, then Deploy and approve the permissions.</li>
-        <li>Copy the <strong>Web app URL</strong> it gives you (ends in <code>/exec</code>) and paste it below.</li>
-      </ol>
-      <div id="connectError" class="empty" style="color:var(--absent);" hidden></div>
-      <div class="field-group">
-        <input type="text" id="apiUrlInput" placeholder="https://script.google.com/macros/s/…/exec" style="flex:3;">
-        <button class="btn primary" id="connectBtn">Connect</button>
+    <header class="top">
+      <h1>Attendance Register</h1>
+      <div class="row-inline" style="gap:14px;">
+        <span class="today" id="todayLabel"></span>
+        <span class="sync-status" id="syncStatus"></span>
+        <button class="btn small" id="refreshBtn" hidden
+          title="Refreshes from the sheet, or retries a failed save first">Refresh</button>
       </div>
-    </div>
-  </div>
+    </header>
 
-  <!-- LOADING SCREEN -->
-  <div id="loadingScreen" class="empty" hidden>Loading…</div>
-
-  <div id="appRoot" hidden>
-    <div class="semester-bar">
-      <label>Active Semester:</label>
-      <select id="globalSemester"></select>
-      <input type="text" id="newSemInput" placeholder="e.g. 1, 2, 3…" style="width:100px;padding:6px 10px;font-size:0.9rem;" hidden>
-      <button class="btn small" id="addSemBtn">+ Add semester</button>
-      <button class="btn small primary" id="confirmSemBtn" hidden>Create</button>
-      <button class="btn small" id="cancelSemBtn" hidden>Cancel</button>
-      <span class="sub" style="margin:0;">Students and attendance are filtered by this semester.</span>
-    </div>
-    <nav class="tabs">
-      <button data-tab="dashboard" class="active">Dashboard</button>
-      <button data-tab="mark">Mark attendance</button>
-      <button data-tab="students">Students</button>
-      <button data-tab="subjects">Subjects</button>
-      <button data-tab="history">History</button>
-      <button data-tab="report">Report</button>
-      <button data-tab="backup">Backup</button>
-    </nav>
-
-    <!-- DASHBOARD -->
-    <section class="view active" id="view-dashboard">
+    <!-- CONNECT SCREEN -->
+    <div id="connectScreen">
       <div class="panel">
-        <div class="filters">
-          <div class="field"><label>Subject</label><select id="dashSubject"></select></div>
-          <div class="field"><label>Class type</label>
-            <select id="dashType"><option value="All">Theory + Lab</option><option value="Theory">Theory only</option><option value="Lab">Lab only</option></select>
-          </div>
-          <div class="field"><label>Period</label>
-            <select id="dashRange"><option value="all">All time</option><option value="1">Last 1 month</option><option value="3">Last 3 months</option><option value="6">Last 6 months</option><option value="custom">Custom range</option></select>
-          </div>
-          <div class="field" id="dashCustomFrom" hidden><label>From</label><input type="date" id="dashFrom"></div>
-          <div class="field" id="dashCustomTo" hidden><label>To</label><input type="date" id="dashTo"></div>
+        <h2>Connect your Google Sheet</h2>
+        <div class="sub">This page stores nothing on its own — it reads and writes a Google Sheet you control, through a
+          small Apps Script "Web app" that sits in front of it.</div>
+        <ol class="steps">
+          <li>Create a new, blank Google Sheet.</li>
+          <li>In it, go to <strong>Extensions → Apps Script</strong>, delete the placeholder code, and paste in the
+            script provided with this app (<code>Code.gs</code>).</li>
+          <li><strong>Deploy → New deployment →</strong> choose type <strong>Web app</strong>. Set "Execute as" to
+            <strong>Me</strong> and "Who has access" to <strong>Anyone</strong>, then Deploy and approve the
+            permissions.
+          </li>
+          <li>Copy the <strong>Web app URL</strong> it gives you (ends in <code>/exec</code>) and paste it below.</li>
+        </ol>
+        <div id="connectError" class="empty" style="color:var(--absent);" hidden></div>
+        <div class="field-group">
+          <input type="text" id="apiUrlInput" placeholder="https://script.google.com/macros/s/…/exec" style="flex:3;">
+          <button class="btn primary" id="connectBtn">Connect</button>
         </div>
       </div>
-      <div class="stats" id="statsRow"></div>
-      <div class="panel">
-        <h2>Per-student attendance</h2>
-        <div class="sub">Total classes counted are only classes held for the subject and period selected above.</div>
-        <div class="table-scroll">
-          <table id="dashboardTable">
-            <thead><tr><th>Roll no</th><th>Name</th><th>Present</th><th>Total</th><th>Percentage</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <div class="empty" id="dashboardEmpty" hidden>Add a subject and mark a few classes to see attendance here.</div>
-      </div>
-    </section>
+    </div>
 
-    <!-- MARK ATTENDANCE -->
-    <section class="view" id="view-mark">
-      <div class="panel">
-        <h2>Mark attendance</h2>
-        <div class="sub">Everyone starts marked present — tap a name to mark them absent instead.</div>
-        <div class="filters">
-          <div class="field"><label>Subject</label><select id="markSubject"></select></div>
-          <div class="field"><label>Date</label><input type="date" id="sessionDate"></div>
-          <div class="field"><label>Class type</label>
-            <div class="mark-toggle">
-              <button type="button" class="mark-btn theory" id="typeTheoryBtn">Theory</button>
-              <button type="button" class="mark-btn lab" id="typeLabBtn">Lab</button>
+    <!-- LOADING SCREEN -->
+    <div id="loadingScreen" class="empty" hidden>Loading…</div>
+
+    <div id="appRoot" hidden>
+      <div class="semester-bar">
+        <label>Active Semester:</label>
+        <select id="globalSemester"></select>
+        <button class="btn small danger link" id="deleteSemBtn" title="Delete current semester" hidden>Delete</button>
+        <input type="text" id="newSemInput" placeholder="e.g. 1, 2, 3…"
+          style="width:100px;padding:6px 10px;font-size:0.9rem;" hidden>
+        <button class="btn small" id="addSemBtn">+ Add semester</button>
+        <button class="btn small primary" id="confirmSemBtn" hidden>Create</button>
+        <button class="btn small" id="cancelSemBtn" hidden>Cancel</button>
+        <span class="sub" style="margin:0;">Students and attendance are filtered by this semester.</span>
+      </div>
+      <nav class="tabs">
+        <button data-tab="dashboard" class="active">Dashboard</button>
+        <button data-tab="mark">Mark attendance</button>
+        <button data-tab="students">Students</button>
+        <button data-tab="subjects">Subjects</button>
+        <button data-tab="history">History</button>
+        <button data-tab="report">Report</button>
+        <button data-tab="backup">Backup</button>
+      </nav>
+
+      <!-- DASHBOARD -->
+      <section class="view active" id="view-dashboard">
+        <div class="panel">
+          <div class="filters">
+            <div class="field"><label>Subject</label><select id="dashSubject"></select></div>
+            <div class="field"><label>Class type</label>
+              <select id="dashType">
+                <option value="All">Theory + Lab</option>
+                <option value="Theory">Theory only</option>
+                <option value="Lab">Lab only</option>
+              </select>
+            </div>
+            <div class="field"><label>Period</label>
+              <select id="dashRange">
+                <option value="all">All time</option>
+                <option value="1">Last 1 month</option>
+                <option value="3">Last 3 months</option>
+                <option value="6">Last 6 months</option>
+                <option value="custom">Custom range</option>
+              </select>
+            </div>
+            <div class="field" id="dashCustomFrom" hidden><label>From</label><input type="date" id="dashFrom"></div>
+            <div class="field" id="dashCustomTo" hidden><label>To</label><input type="date" id="dashTo"></div>
+          </div>
+        </div>
+        <div class="stats" id="statsRow"></div>
+        <div class="panel">
+          <h2>Per-student attendance</h2>
+          <div class="sub">Total classes counted are only classes held for the subject and period selected above.</div>
+          <div class="table-scroll">
+            <table id="dashboardTable">
+              <thead>
+                <tr>
+                  <th>Roll no</th>
+                  <th>Name</th>
+                  <th>Present</th>
+                  <th>Total</th>
+                  <th>Percentage</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="empty" id="dashboardEmpty" hidden>Add a subject and mark a few classes to see attendance here.
+          </div>
+        </div>
+      </section>
+
+      <!-- MARK ATTENDANCE -->
+      <section class="view" id="view-mark">
+        <div class="panel">
+          <h2>Mark attendance</h2>
+          <div class="sub">Everyone starts marked present — tap a name to mark them absent instead.</div>
+          <div class="filters">
+            <div class="field"><label>Subject</label><select id="markSubject"></select></div>
+            <div class="field"><label>Date</label><input type="date" id="sessionDate"></div>
+            <div class="field"><label>Class type</label>
+              <div class="mark-toggle">
+                <button type="button" class="mark-btn theory" id="typeTheoryBtn">Theory</button>
+                <button type="button" class="mark-btn lab" id="typeLabBtn">Lab</button>
+              </div>
+            </div>
+          </div>
+          <div id="markNoSubject" class="empty" hidden>Add a subject first, in the Subjects tab.</div>
+          <div id="markBody" hidden>
+            <div class="row-inline" style="margin-bottom:16px;">
+              <button class="btn link" id="markAllPresent">Mark all present</button>
+              <button class="btn link" id="markAllAbsent">Mark all absent</button>
+            </div>
+            <div id="markList"></div>
+            <div class="empty" id="markEmpty" hidden>Add students first, in the Students tab.</div>
+            <div class="row-inline" style="margin-top:16px;">
+              <button class="btn primary" id="saveSession">Save attendance</button>
+              <span class="sub" id="sessionStatus"></span>
             </div>
           </div>
         </div>
-        <div id="markNoSubject" class="empty" hidden>Add a subject first, in the Subjects tab.</div>
-        <div id="markBody" hidden>
-          <div class="row-inline" style="margin-bottom:16px;">
-            <button class="btn link" id="markAllPresent">Mark all present</button>
-            <button class="btn link" id="markAllAbsent">Mark all absent</button>
+      </section>
+
+      <!-- STUDENTS -->
+      <section class="view" id="view-students">
+        <div class="panel">
+          <h2>Class list <span class="sub" id="studentsForSemLabel" style="font-family:inherit;font-weight:400;"></span>
+          </h2>
+          <div class="sub">Add every student once — they belong to the currently selected semester. Switch the semester
+            in the bar above to manage a different batch.</div>
+          <div class="field-group">
+            <input type="text" id="newRoll" placeholder="Roll no / enrolment no">
+            <input type="text" id="newName" placeholder="Full name">
+            <button class="btn primary" id="addStudent">Add student</button>
           </div>
-          <div id="markList"></div>
-          <div class="empty" id="markEmpty" hidden>Add students first, in the Students tab.</div>
-          <div class="row-inline" style="margin-top:16px;">
-            <button class="btn primary" id="saveSession">Save attendance</button>
-            <span class="sub" id="sessionStatus"></span>
+          <div class="row-inline" style="margin-top: 4px; margin-bottom: 16px; justify-content: space-between;">
+            <button class="btn small link" id="bulkAddToggleBtn">Paste a list of students instead</button>
+            <div id="bulkMoveWrapper" class="row-inline" style="gap:6px;" hidden>
+              <span style="font-size:0.85rem; color:var(--muted);">Move all visible students to:</span>
+              <select id="bulkMoveSelect" style="padding:2px 6px; font-size:0.85rem;"></select>
+              <button class="btn small" id="bulkMoveBtn">Move</button>
+            </div>
+          </div>
+          <div id="bulkAddSection" hidden
+            style="margin-bottom: 16px; background: var(--paper); padding: 16px; border-radius: 6px; border: 1px solid var(--line);">
+            <div class="sub" style="margin-bottom: 8px;">Paste lines of <b>Roll Number</b> followed by <b>Name</b>
+              (separated by a space or tab).</div>
+            <textarea id="bulkAddText"
+              style="width:100%; height:120px; font-family:inherit; padding:8px; border:1px solid var(--line); border-radius:4px; margin-bottom:8px;"
+              placeholder="2101 John Doe&#10;2102 Jane Smith"></textarea>
+            <div class="row-inline">
+              <button class="btn primary small" id="bulkAddConfirmBtn">Add these students</button>
+              <button class="btn small" id="bulkAddCancelBtn">Cancel</button>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table id="studentsTable">
+              <thead>
+                <tr>
+                  <th>Roll no</th>
+                  <th>Name</th>
+                  <th>Semester</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="empty" id="studentsEmpty" hidden>No students yet for this semester — add your first one above.
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- STUDENTS -->
-    <section class="view" id="view-students">
-      <div class="panel">
-        <h2>Class list <span class="sub" id="studentsForSemLabel" style="font-family:inherit;font-weight:400;"></span></h2>
-        <div class="sub">Add every student once — they belong to the currently selected semester. Switch the semester in the bar above to manage a different batch.</div>
-        <div class="field-group">
-          <input type="text" id="newRoll" placeholder="Roll no / enrolment no">
-          <input type="text" id="newName" placeholder="Full name">
-          <button class="btn primary" id="addStudent">Add student</button>
-        </div>
-        <div class="table-scroll">
-          <table id="studentsTable">
-            <thead><tr><th>Roll no</th><th>Name</th><th>Semester</th><th></th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <div class="empty" id="studentsEmpty" hidden>No students yet for this semester — add your first one above.</div>
-      </div>
-    </section>
-
-    <!-- SUBJECTS -->
-    <section class="view" id="view-subjects">
-      <div class="panel">
-        <h2>Subjects</h2>
-        <div class="sub">Add each subject you take classes for. When you mark attendance, you'll also say whether that class was Theory or Lab — so one subject can carry both.</div>
-        <div class="field-group">
-          <input type="text" id="newSubCode" placeholder="Subject code (e.g. CTBT-ESC-201)">
-          <input type="text" id="newSubName" placeholder="Subject name (e.g. Digital Logic Design)">
-          <button class="btn primary" id="addSubject">Add subject</button>
-        </div>
-        <div class="table-scroll">
-          <table id="subjectsTable">
-            <thead><tr><th>Code</th><th>Name</th><th></th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <div class="empty" id="subjectsEmpty" hidden>No subjects yet — add your first one above.</div>
-      </div>
-    </section>
-
-    <!-- HISTORY -->
-    <section class="view" id="view-history">
-      <div class="panel">
-        <h2>Class history</h2>
-        <div class="sub">Every class you've recorded. Edit a row to correct that day's marks.</div>
-        <div class="filters">
-          <div class="field"><label>Subject</label><select id="histSubject"></select></div>
-        </div>
-        <div class="table-scroll">
-          <table id="historyTable">
-            <thead><tr><th>Date</th><th>Subject</th><th>Type</th><th>Present</th><th>Total</th><th></th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <div class="empty" id="historyEmpty" hidden>No classes recorded yet.</div>
-      </div>
-    </section>
-
-    <!-- REPORT -->
-    <section class="view" id="view-report">
-      <div class="panel no-print">
-        <h2>Generate report</h2>
-        <div class="sub">Fills in your college's attendance sheet format. These header details are reused every time you generate a report.</div>
-        <div class="field-group">
-          <input type="text" id="setUniversity" placeholder="University / institute name">
-          <input type="text" id="setSchool" placeholder="School / department name">
-        </div>
-        <div class="field-group">
-          <input type="text" id="setProgram" placeholder="Program & semester (e.g. B.Tech, Semester II)">
-          <input type="text" id="setFaculty" placeholder="Faculty name">
-        </div>
-        <hr class="div">
-        <div class="filters">
-          <div class="field"><label>Subject</label><select id="repSubject"></select></div>
-          <div class="field"><label>Class type</label>
-            <select id="repType"><option value="All">Theory + Lab</option><option value="Theory">Theory only</option><option value="Lab">Lab only</option></select>
+      <!-- SUBJECTS -->
+      <section class="view" id="view-subjects">
+        <div class="panel">
+          <h2>Subjects</h2>
+          <div class="sub">Add each subject you take classes for. When you mark attendance, you'll also say whether that
+            class was Theory or Lab — so one subject can carry both.</div>
+          <div class="field-group">
+            <input type="text" id="newSubCode" placeholder="Subject code (e.g. CTBT-ESC-201)">
+            <input type="text" id="newSubName" placeholder="Subject name (e.g. Digital Logic Design)">
+            <button class="btn primary" id="addSubject">Add subject</button>
           </div>
-          <div class="field"><label>Period</label>
-            <select id="repRange"><option value="6">Last 6 months</option><option value="1">Last 1 month</option><option value="3">Last 3 months</option><option value="all">All time</option><option value="custom">Custom range</option></select>
+          <div class="table-scroll">
+            <table id="subjectsTable">
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Name</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
           </div>
-          <div class="field" id="repCustomFrom" hidden><label>From</label><input type="date" id="repFrom"></div>
-          <div class="field" id="repCustomTo" hidden><label>To</label><input type="date" id="repTo"></div>
+          <div class="empty" id="subjectsEmpty" hidden>No subjects yet — add your first one above.</div>
         </div>
-        <div class="row-inline">
-          <button class="btn" id="downloadDoc">Download as Word (.doc)</button>
-          <button class="btn" id="printReport">Print / save as PDF</button>
-        </div>
-      </div>
+      </section>
 
-      <div class="report-doc" id="reportPreview"></div>
-    </section>
+      <!-- HISTORY -->
+      <section class="view" id="view-history">
+        <div class="panel">
+          <h2>Class history</h2>
+          <div class="sub">Every class you've recorded. Edit a row to correct that day's marks.</div>
+          <div class="filters">
+            <div class="field"><label>Subject</label><select id="histSubject"></select></div>
+          </div>
+          <div class="table-scroll">
+            <table id="historyTable">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Subject</th>
+                  <th>Type</th>
+                  <th>Present</th>
+                  <th>Total</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="empty" id="historyEmpty" hidden>No classes recorded yet.</div>
+        </div>
+      </section>
 
-    <!-- BACKUP -->
-    <section class="view" id="view-backup">
-      <div class="panel">
-        <h2>Connected Google Sheet</h2>
-        <div class="sub" id="connectedSheetLabel">Not connected.</div>
-        <div class="row-inline" style="margin-bottom:10px;">
-          <button class="btn" id="copyBookmarkBtn">Copy bookmark link</button>
-          <button class="btn" id="backupNowBtn">Backup now (copy to Drive)</button>
-          <button class="btn danger" id="changeSheetBtn">Change connected sheet</button>
+      <!-- REPORT -->
+      <section class="view" id="view-report">
+        <div class="panel no-print">
+          <h2>Generate report</h2>
+          <div class="sub">Fills in your college's attendance sheet format. These header details are reused every time
+            you generate a report.</div>
+          <div class="field-group">
+            <input type="text" id="setUniversity" placeholder="University / institute name">
+            <input type="text" id="setSchool" placeholder="School / department name">
+          </div>
+          <div class="field-group">
+            <input type="text" id="setProgram" placeholder="Program & semester (e.g. B.Tech, Semester II)">
+            <input type="text" id="setFaculty" placeholder="Faculty name">
+          </div>
+          <hr class="div">
+          <div class="filters">
+            <div class="field"><label>Subject</label><select id="repSubject"></select></div>
+            <div class="field"><label>Class type</label>
+              <select id="repType">
+                <option value="All">Theory + Lab</option>
+                <option value="Theory">Theory only</option>
+                <option value="Lab">Lab only</option>
+              </select>
+            </div>
+            <div class="field"><label>Period</label>
+              <select id="repRange">
+                <option value="6">Last 6 months</option>
+                <option value="1">Last 1 month</option>
+                <option value="3">Last 3 months</option>
+                <option value="all">All time</option>
+                <option value="custom">Custom range</option>
+              </select>
+            </div>
+            <div class="field" id="repCustomFrom" hidden><label>From</label><input type="date" id="repFrom"></div>
+            <div class="field" id="repCustomTo" hidden><label>To</label><input type="date" id="repTo"></div>
+          </div>
+          <div class="row-inline">
+            <button class="btn" id="downloadDoc">Download as Word (.doc)</button>
+            <button class="btn" id="printReport">Print / save as PDF</button>
+          </div>
         </div>
-        <div class="sub" id="backupResult" hidden></div>
-        <footer class="note">Bookmark the copied link — it keeps this page connected to your sheet even if your browser's storage gets cleared, since the connection travels in the link itself rather than sitting only in this browser.</footer>
-      </div>
 
-      <div class="panel">
-        <h2>Offline copies</h2>
-        <div class="sub">Your live data always lives in the Google Sheet above. These just make an extra local copy on this device.</div>
-        <div class="row-inline" style="margin-bottom: 14px;">
-          <button class="btn" id="exportJson">Export snapshot (.json)</button>
-          <button class="btn" id="exportCsv">Export raw records (.csv)</button>
+        <div class="report-doc" id="reportPreview"></div>
+      </section>
+
+      <!-- BACKUP -->
+      <section class="view" id="view-backup">
+        <div class="panel">
+          <h2>Connected Google Sheet</h2>
+          <div class="sub" id="connectedSheetLabel">Not connected.</div>
+          <div class="row-inline" style="margin-bottom:10px;">
+            <button class="btn" id="copyBookmarkBtn">Copy bookmark link</button>
+            <button class="btn" id="backupNowBtn">Backup now (copy to Drive)</button>
+            <button class="btn danger" id="changeSheetBtn">Change connected sheet</button>
+          </div>
+          <div class="sub" id="backupResult" hidden></div>
+          <footer class="note">Bookmark the copied link — it keeps this page connected to your sheet even if your
+            browser's storage gets cleared, since the connection travels in the link itself rather than sitting only in
+            this browser.</footer>
         </div>
-        <div class="row-inline" style="margin-bottom: 14px;">
-          <input type="file" id="importFile" accept="application/json" style="display:none;">
-          <button class="btn" id="importJsonBtn">Restore a snapshot into this sheet</button>
+
+        <div class="panel">
+          <h2>Offline copies</h2>
+          <div class="sub">Your live data always lives in the Google Sheet above. These just make an extra local copy on
+            this device.</div>
+          <div class="row-inline" style="margin-bottom: 14px;">
+            <button class="btn" id="exportJson">Export snapshot (.json)</button>
+            <button class="btn" id="exportCsv">Export raw records (.csv)</button>
+          </div>
+          <div class="row-inline" style="margin-bottom: 14px;">
+            <input type="file" id="importFile" accept="application/json" style="display:none;">
+            <button class="btn" id="importJsonBtn">Restore a snapshot into this sheet</button>
+          </div>
+          <div class="row-inline">
+            <button class="btn danger" id="resetData">Erase all data in this sheet</button>
+          </div>
         </div>
-        <div class="row-inline">
-          <button class="btn danger" id="resetData">Erase all data in this sheet</button>
-        </div>
-      </div>
-    </section>
+      </section>
+    </div>
+
   </div>
 
-</div>
+  <script>
+    (function () {
+      "use strict";
 
-<script>
-(function(){
-  "use strict";
+      const API_URL_KEY = "attendance_api_url";
+      let apiUrl = null;
+      let connectedSheetName = "";
+      let saving = false, saveQueued = false, lastSaveFailed = false;
 
-  const API_URL_KEY = "attendance_api_url";
-  let apiUrl = null;
-  let connectedSheetName = "";
-  let saving = false, saveQueued = false, lastSaveFailed = false;
-
-  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
-  function todayISO(){ return new Date().toISOString().slice(0,10); }
-  function formatDate(iso){
-    const d = new Date(iso + "T00:00:00");
-    return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
-  }
-  function monthsAgoISO(n){
-    const d = new Date(); d.setMonth(d.getMonth() - n); return d.toISOString().slice(0,10);
-  }
-  function escapeHtml(str){
-    return String(str).replace(/[&<>"']/g, ch => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[ch]));
-  }
-  function fmtPct(p){ return Number(p.toFixed(2)).toString(); }
-
-  const DEFAULT_SETTINGS = {
-    university: "National Forensic Sciences University",
-    school: "School of Cyber Security and Digital Forensics",
-    program: "B. Tech - M. Tech (Cyber Security), Semester- II",
-    faculty: ""
-  };
-
-  function normalizeState(raw){
-    const st = {
-      students: Array.isArray(raw.students) ? raw.students : [],
-      subjects: Array.isArray(raw.subjects) ? raw.subjects : [],
-      sessions: Array.isArray(raw.sessions) ? raw.sessions : [],
-      settings: Object.assign({}, DEFAULT_SETTINGS, raw.settings || {})
-    };
-    // Ensure every student has a semester field
-    st.students.forEach(s => { if(!s.semester) s.semester = ''; });
-    const legacyNeeded = st.sessions.some(s => !s.subjectId);
-    if(legacyNeeded){
-      let legacy = st.subjects.find(su => su.id === "legacy");
-      if(!legacy){ legacy = { id: "legacy", code: "", name: "General" }; st.subjects.unshift(legacy); }
-      st.sessions.forEach(s => { if(!s.subjectId) s.subjectId = "legacy"; });
-    }
-    st.sessions.forEach(s => {
-      if(!s.type) s.type = "Theory";
-      if(!s.id) s.id = uid();
-      if(!s.records) s.records = {};
-    });
-    return st;
-  }
-
-  let activeSemester = '';
-  let state = { students: [], subjects: [], sessions: [], settings: Object.assign({}, DEFAULT_SETTINGS) };
-  let markTemp = {};
-  let editingSessionId = null;
-  let currentMarkType = "Theory";
-
-  // ---------- Sync status ----------
-  function setStatus(text, isError){
-    const el = document.getElementById("syncStatus");
-    el.textContent = text;
-    el.style.color = isError ? "var(--absent)" : "var(--muted)";
-  }
-
-  // ---------- API plumbing ----------
-  function buildUrl(action){
-    return apiUrl + (apiUrl.indexOf("?") >= 0 ? "&" : "?") + "action=" + encodeURIComponent(action);
-  }
-  async function apiGet(action){
-    const res = await fetch(buildUrl(action), { method: "GET" });
-    let data;
-    try{ data = await res.json(); }catch(e){ throw new Error("The server didn't return valid data."); }
-    if(!data.ok) throw new Error(data.error || "Request failed");
-    return data;
-  }
-  async function apiPost(payload){
-    // Deliberately no custom headers: keeps this a "simple request" so the
-    // browser doesn't send a CORS preflight that Apps Script can't answer.
-    const res = await fetch(apiUrl, { method: "POST", body: JSON.stringify(payload) });
-    let data;
-    try{ data = await res.json(); }catch(e){ throw new Error("The server didn't return valid data."); }
-    if(!data.ok) throw new Error(data.error || "Request failed");
-    return data;
-  }
-
-  async function fetchAll(){
-    const data = await apiGet("getAll");
-    state = normalizeState(data);
-  }
-
-  async function pushSave(){
-    if(!apiUrl) return;
-    if(saving){ saveQueued = true; return; }
-    saving = true;
-    setStatus("Saving…");
-    try{
-      await apiPost({ action: "saveAll", students: state.students, subjects: state.subjects, sessions: state.sessions, settings: state.settings });
-      setStatus("Synced");
-      lastSaveFailed = false;
-    }catch(err){
-      console.error(err);
-      setStatus("Sync failed — tap Retry", true);
-      lastSaveFailed = true;
-    }finally{
-      saving = false;
-      if(saveQueued){ saveQueued = false; pushSave(); }
-    }
-  }
-
-  function allSemesters(){
-    const set = new Set();
-    state.students.forEach(s => { if(s.semester) set.add(s.semester); });
-    // Also include semesters saved in settings (created but possibly without students yet)
-    if(state.settings.semesters){
-      state.settings.semesters.split(',').forEach(s => { const t = s.trim(); if(t) set.add(t); });
-    }
-    return [...set].sort((a,b) => {
-      const na = parseInt(a), nb = parseInt(b);
-      if(!isNaN(na) && !isNaN(nb)) return na - nb;
-      return a.localeCompare(b, undefined, {numeric:true});
-    });
-  }
-
-  function sortedStudents(semester){
-    const sem = semester !== undefined ? semester : activeSemester;
-    if(!sem || sem === '__all__') return [...state.students].sort((a,b) => a.roll.localeCompare(b.roll, undefined, {numeric:true}));
-    if(sem === '__unassigned__') return [...state.students].filter(s => !s.semester).sort((a,b) => a.roll.localeCompare(b.roll, undefined, {numeric:true}));
-    return [...state.students]
-      .filter(s => s.semester === sem)
-      .sort((a,b) => a.roll.localeCompare(b.roll, undefined, {numeric:true}));
-  }
-  function sortedStudentsAll(){
-    return [...state.students].sort((a,b) => a.roll.localeCompare(b.roll, undefined, {numeric:true}));
-  }
-  function sortedSubjects(){
-    return [...state.subjects].sort((a,b) => (a.code+a.name).localeCompare(b.code+b.name, undefined, {numeric:true}));
-  }
-  function subjectLabel(sub){
-    return sub.code ? `${sub.code} — ${sub.name}` : sub.name;
-  }
-  function pctClass(pct){
-    if(pct >= 75) return "good";
-    if(pct >= 50) return "warn";
-    return "bad";
-  }
-
-  function filterSessions({ subjectId, type, fromISO, toISO }){
-    return state.sessions.filter(s => {
-      if(subjectId && subjectId !== "__all__" && s.subjectId !== subjectId) return false;
-      if(type && type !== "All" && s.type !== type) return false;
-      if(fromISO && s.date < fromISO) return false;
-      if(toISO && s.date > toISO) return false;
-      return true;
-    });
-  }
-
-  function studentStatsFor(studentId, sessions){
-    let present = 0, total = 0;
-    sessions.forEach(s => {
-      if(Object.prototype.hasOwnProperty.call(s.records, studentId)){
-        total++;
-        if(s.records[studentId]) present++;
+      function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+      function todayISO() { return new Date().toISOString().slice(0, 10); }
+      function formatDate(iso) {
+        const d = new Date(iso + "T00:00:00");
+        return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
       }
-    });
-    return { present, total };
-  }
+      function monthsAgoISO(n) {
+        const d = new Date(); d.setMonth(d.getMonth() - n); return d.toISOString().slice(0, 10);
+      }
+      function escapeHtml(str) {
+        return String(str).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+      }
+      function fmtPct(p) { return Number(p.toFixed(2)).toString(); }
 
-  function rangeToDates(rangeVal, fromInput, toInput){
-    if(rangeVal === "all") return { fromISO: null, toISO: null };
-    if(rangeVal === "custom") return { fromISO: fromInput.value || null, toISO: toInput.value || null };
-    return { fromISO: monthsAgoISO(Number(rangeVal)), toISO: todayISO() };
-  }
+      const DEFAULT_SETTINGS = {
+        university: "National Forensic Sciences University",
+        school: "School of Cyber Security and Digital Forensics",
+        program: "B. Tech - M. Tech (Cyber Security), Semester- II",
+        faculty: ""
+      };
 
-  // ---------- Global Semester Selector ----------
-  const globalSemSelect = document.getElementById("globalSemester");
+      function normalizeState(raw) {
+        const st = {
+          students: Array.isArray(raw.students) ? raw.students : [],
+          subjects: Array.isArray(raw.subjects) ? raw.subjects : [],
+          sessions: Array.isArray(raw.sessions) ? raw.sessions : [],
+          settings: Object.assign({}, DEFAULT_SETTINGS, raw.settings || {})
+        };
+        // Assign students without a semester to Semester 5 by default
+        st.students.forEach(s => { if (!s.semester) s.semester = '5'; });
+        const legacyNeeded = st.sessions.some(s => !s.subjectId);
+        if (legacyNeeded) {
+          let legacy = st.subjects.find(su => su.id === "legacy");
+          if (!legacy) { legacy = { id: "legacy", code: "", name: "General" }; st.subjects.unshift(legacy); }
+          st.sessions.forEach(s => { if (!s.subjectId) s.subjectId = "legacy"; });
+        }
+        st.sessions.forEach(s => {
+          if (!s.type) s.type = "Theory";
+          if (!s.id) s.id = uid();
+          if (!s.records) s.records = {};
+        });
+        // Deduplicate students by roll number
+        const rollMap = {};
+        const finalStudents = [];
+        st.students.forEach(s => {
+          if (!s.roll) return;
+          const roll = String(s.roll).trim().toLowerCase();
+          if (!rollMap[roll]) {
+            rollMap[roll] = s;
+            finalStudents.push(s);
+          } else {
+            // It's a duplicate. Merge attendance records into the original ID.
+            const originalId = rollMap[roll].id;
+            st.sessions.forEach(sess => {
+              if (sess.records && sess.records[s.id] !== undefined) {
+                sess.records[originalId] = sess.records[s.id];
+                delete sess.records[s.id];
+              }
+            });
+            // If the original student had no semester, but the duplicate did, adopt the semester
+            if (rollMap[roll].semester === '5' && s.semester !== '5') {
+              rollMap[roll].semester = s.semester;
+            }
+          }
+        });
+        st.students = finalStudents;
 
-  function populateGlobalSemester(){
-    const sems = allSemesters();
-    const prev = globalSemSelect.value;
-    globalSemSelect.innerHTML = '';
+        return st;
+      }
 
-    // Always add "All semesters" at the top
-    const allOpt = document.createElement('option');
-    allOpt.value = '__all__'; allOpt.textContent = 'All semesters';
-    globalSemSelect.appendChild(allOpt);
+      let activeSemester = '';
+      let state = { students: [], subjects: [], sessions: [], settings: Object.assign({}, DEFAULT_SETTINGS) };
+      let markTemp = {};
+      let editingSessionId = null;
+      let currentMarkType = "Theory";
 
-    if(sems.length === 0){
-      activeSemester = '__all__';
-      return;
-    }
-    sems.forEach(sem => {
-      const opt = document.createElement('option');
-      opt.value = sem;
-      opt.textContent = 'Semester ' + sem;
-      globalSemSelect.appendChild(opt);
-    });
+      // ---------- Sync status ----------
+      function setStatus(text, isError) {
+        const el = document.getElementById("syncStatus");
+        el.textContent = text;
+        el.style.color = isError ? "var(--absent)" : "var(--muted)";
+      }
 
-    // Add "Unassigned" if any students have no semester
-    const hasUnassigned = state.students.some(s => !s.semester);
-    if(hasUnassigned){
-      const uOpt = document.createElement('option');
-      uOpt.value = '__unassigned__'; uOpt.textContent = 'Unassigned (no semester)';
-      globalSemSelect.appendChild(uOpt);
-    }
+      // ---------- API plumbing ----------
+      function buildUrl(action) {
+        return apiUrl + (apiUrl.indexOf("?") >= 0 ? "&" : "?") + "action=" + encodeURIComponent(action);
+      }
+      async function apiGet(action) {
+        const res = await fetch(buildUrl(action), { method: "GET" });
+        let data;
+        try { data = await res.json(); } catch (e) { throw new Error("The server didn't return valid data."); }
+        if (!data.ok) throw new Error(data.error || "Request failed");
+        return data;
+      }
+      async function apiPost(payload) {
+        // Deliberately no custom headers: keeps this a "simple request" so the
+        // browser doesn't send a CORS preflight that Apps Script can't answer.
+        const res = await fetch(apiUrl, { method: "POST", body: JSON.stringify(payload) });
+        let data;
+        try { data = await res.json(); } catch (e) { throw new Error("The server didn't return valid data."); }
+        if (!data.ok) throw new Error(data.error || "Request failed");
+        return data;
+      }
 
-    if(prev && (sems.includes(prev) || prev === '__all__' || prev === '__unassigned__')){
-      globalSemSelect.value = prev;
-    } else {
-      globalSemSelect.value = sems[0];
-    }
-    activeSemester = globalSemSelect.value;
-  }
+      async function fetchAll() {
+        const data = await apiGet("getAll");
+        state = normalizeState(data);
+      }
 
-  globalSemSelect.addEventListener('change', () => {
-    activeSemester = globalSemSelect.value;
-    renderAllForTab(currentTabName());
-  });
+      async function pushSave() {
+        if (!apiUrl) return;
+        if (saving) { saveQueued = true; return; }
+        saving = true;
+        setStatus("Saving…");
+        try {
+          await apiPost({ action: "saveAll", students: state.students, subjects: state.subjects, sessions: state.sessions, settings: state.settings });
+          setStatus("Synced");
+          lastSaveFailed = false;
+        } catch (err) {
+          console.error(err);
+          setStatus("Sync failed — tap Retry", true);
+          lastSaveFailed = true;
+        } finally {
+          saving = false;
+          if (saveQueued) { saveQueued = false; pushSave(); }
+        }
+      }
 
-  // Add-semester toggle
-  const newSemInput = document.getElementById('newSemInput');
-  const addSemBtn = document.getElementById('addSemBtn');
-  const confirmSemBtn = document.getElementById('confirmSemBtn');
-  const cancelSemBtn = document.getElementById('cancelSemBtn');
+      function allSemesters() {
+        const set = new Set();
+        state.students.forEach(s => { if (s.semester) set.add(s.semester); });
+        // Also include semesters saved in settings (created but possibly without students yet)
+        if (state.settings.semesters) {
+          state.settings.semesters.split(',').forEach(s => { const t = s.trim(); if (t) set.add(t); });
+        }
+        return [...set].sort((a, b) => {
+          const na = parseInt(a), nb = parseInt(b);
+          if (!isNaN(na) && !isNaN(nb)) return na - nb;
+          return a.localeCompare(b, undefined, { numeric: true });
+        });
+      }
 
-  addSemBtn.addEventListener('click', () => {
-    newSemInput.hidden = false;
-    confirmSemBtn.hidden = false;
-    cancelSemBtn.hidden = false;
-    addSemBtn.hidden = true;
-    newSemInput.value = '';
-    newSemInput.focus();
-  });
-  cancelSemBtn.addEventListener('click', () => {
-    newSemInput.hidden = true;
-    confirmSemBtn.hidden = true;
-    cancelSemBtn.hidden = true;
-    addSemBtn.hidden = false;
-  });
-  confirmSemBtn.addEventListener('click', () => {
-    const val = newSemInput.value.trim();
-    if(!val){ alert('Enter a semester number or name.'); return; }
-    if(allSemesters().includes(val)){
-      // Semester already exists — just switch to it
-      globalSemSelect.value = val;
-      activeSemester = val;
-    } else {
-      // Create a placeholder student-less entry by adding a hidden marker
-      // Actually, we just add the option and set activeSemester — students added next will carry this semester
-      const opt = document.createElement('option');
-      opt.value = val;
-      opt.textContent = 'Semester ' + val;
-      globalSemSelect.appendChild(opt);
-      globalSemSelect.value = val;
-      activeSemester = val;
-      // Save the semester in settings so it persists even without students
-      if(!state.settings.semesters) state.settings.semesters = '';
-      const existing = state.settings.semesters ? state.settings.semesters.split(',') : [];
-      if(!existing.includes(val)){ existing.push(val); state.settings.semesters = existing.join(','); pushSave(); }
-    }
-    newSemInput.hidden = true;
-    confirmSemBtn.hidden = true;
-    cancelSemBtn.hidden = true;
-    addSemBtn.hidden = false;
-    renderAllForTab(currentTabName());
-  });
-  newSemInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') confirmSemBtn.click(); });
+      function sortedStudents(semester) {
+        const sem = semester !== undefined ? semester : activeSemester;
+        if (!sem || sem === '__all__') return [...state.students].sort((a, b) => a.roll.localeCompare(b.roll, undefined, { numeric: true }));
+        if (sem === '__unassigned__') return [...state.students].filter(s => !s.semester).sort((a, b) => a.roll.localeCompare(b.roll, undefined, { numeric: true }));
+        return [...state.students]
+          .filter(s => s.semester === sem)
+          .sort((a, b) => a.roll.localeCompare(b.roll, undefined, { numeric: true }));
+      }
+      function sortedStudentsAll() {
+        return [...state.students].sort((a, b) => a.roll.localeCompare(b.roll, undefined, { numeric: true }));
+      }
+      function sortedSubjects() {
+        return [...state.subjects].sort((a, b) => (a.code + a.name).localeCompare(b.code + b.name, undefined, { numeric: true }));
+      }
+      function subjectLabel(sub) {
+        return sub.code ? `${sub.code} — ${sub.name}` : sub.name;
+      }
+      function pctClass(pct) {
+        if (pct >= 75) return "good";
+        if (pct >= 50) return "warn";
+        return "bad";
+      }
 
-  // ---------- Tabs ----------
-  const tabButtons = document.querySelectorAll("nav.tabs button");
-  const views = document.querySelectorAll("section.view");
-  tabButtons.forEach(btn => {
-    btn.addEventListener("click", () => {
-      tabButtons.forEach(b => b.classList.remove("active"));
-      views.forEach(v => v.classList.remove("active"));
-      btn.classList.add("active");
-      document.getElementById("view-" + btn.dataset.tab).classList.add("active");
-      renderAllForTab(btn.dataset.tab);
-    });
-  });
-  function goToTab(name){
-    document.querySelector('nav.tabs button[data-tab="' + name + '"]').click();
-  }
-  function currentTabName(){
-    const active = document.querySelector("nav.tabs button.active");
-    return active ? active.dataset.tab : "dashboard";
-  }
-  function renderAllForTab(tab){
-    if(tab === "dashboard") renderDashboard();
-    if(tab === "mark") renderMarkTab();
-    if(tab === "students") renderStudents();
-    if(tab === "subjects") renderSubjects();
-    if(tab === "history") renderHistory();
-    if(tab === "report") renderReport();
-    if(tab === "backup") renderConnectedSheetInfo();
-  }
+      function filterSessions({ subjectId, type, fromISO, toISO }) {
+        return state.sessions.filter(s => {
+          if (subjectId && subjectId !== "__all__" && s.subjectId !== subjectId) return false;
+          if (type && type !== "All" && s.type !== type) return false;
+          if (fromISO && s.date < fromISO) return false;
+          if (toISO && s.date > toISO) return false;
+          return true;
+        });
+      }
 
-  function populateSubjectSelect(sel, includeAll){
-    const subs = sortedSubjects();
-    const prev = sel.value;
-    sel.innerHTML = "";
-    if(includeAll){
-      const opt = document.createElement("option");
-      opt.value = "__all__"; opt.textContent = "All subjects";
-      sel.appendChild(opt);
-    }
-    subs.forEach(su => {
-      const opt = document.createElement("option");
-      opt.value = su.id; opt.textContent = subjectLabel(su);
-      sel.appendChild(opt);
-    });
-    if(subs.some(s => s.id === prev) || (includeAll && prev === "__all__")) sel.value = prev;
-    else if(subs[0]) sel.value = subs[0].id;
-  }
+      function studentStatsFor(studentId, sessions) {
+        let present = 0, total = 0;
+        sessions.forEach(s => {
+          if (Object.prototype.hasOwnProperty.call(s.records, studentId)) {
+            total++;
+            if (s.records[studentId]) present++;
+          }
+        });
+        return { present, total };
+      }
 
-  // ---------- Dashboard ----------
-  const dashSubject = document.getElementById("dashSubject");
-  const dashType = document.getElementById("dashType");
-  const dashRange = document.getElementById("dashRange");
-  const dashFrom = document.getElementById("dashFrom");
-  const dashTo = document.getElementById("dashTo");
+      function rangeToDates(rangeVal, fromInput, toInput) {
+        if (rangeVal === "all") return { fromISO: null, toISO: null };
+        if (rangeVal === "custom") return { fromISO: fromInput.value || null, toISO: toInput.value || null };
+        return { fromISO: monthsAgoISO(Number(rangeVal)), toISO: todayISO() };
+      }
 
-  dashRange.addEventListener("change", () => {
-    const custom = dashRange.value === "custom";
-    document.getElementById("dashCustomFrom").hidden = !custom;
-    document.getElementById("dashCustomTo").hidden = !custom;
-    renderDashboard();
-  });
-  [dashSubject, dashType, dashFrom, dashTo].forEach(el => el.addEventListener("change", renderDashboard));
+      // ---------- Global Semester Selector ----------
+      const globalSemSelect = document.getElementById("globalSemester");
 
-  function renderDashboard(){
-    populateSubjectSelect(dashSubject, true);
-    const { fromISO, toISO } = rangeToDates(dashRange.value, dashFrom, dashTo);
-    const sessions = filterSessions({ subjectId: dashSubject.value, type: dashType.value, fromISO, toISO });
-    const students = sortedStudents();
-    const semStudentIds = new Set(students.map(s => s.id));
+      function populateGlobalSemester() {
+        const sems = allSemesters();
+        const prev = globalSemSelect.value;
+        globalSemSelect.innerHTML = '';
 
-    let sumPresent = 0, sumTotal = 0;
-    const rows = students.map(st => {
-      const semSessions = sessions.filter(s => Object.prototype.hasOwnProperty.call(s.records, st.id));
-      const { present, total } = studentStatsFor(st.id, sessions);
-      sumPresent += present; sumTotal += total;
-      return { st, present, total };
-    });
-    const overallPct = sumTotal > 0 ? fmtPct((sumPresent/sumTotal)*100) : null;
+        // Always add "All semesters" at the top
+        const allOpt = document.createElement('option');
+        allOpt.value = '__all__'; allOpt.textContent = 'All semesters';
+        globalSemSelect.appendChild(allOpt);
 
-    document.getElementById("statsRow").innerHTML = `
+        if (sems.length === 0) {
+          activeSemester = '__all__';
+          document.getElementById('deleteSemBtn').hidden = true;
+          return;
+        }
+        sems.forEach(sem => {
+          const opt = document.createElement('option');
+          opt.value = sem;
+          opt.textContent = 'Semester ' + sem;
+          globalSemSelect.appendChild(opt);
+        });
+
+        // Add "Unassigned" if any students have no semester
+        const hasUnassigned = state.students.some(s => !s.semester);
+        if (hasUnassigned) {
+          const uOpt = document.createElement('option');
+          uOpt.value = '__unassigned__'; uOpt.textContent = 'Unassigned (no semester)';
+          globalSemSelect.appendChild(uOpt);
+        }
+
+        if (prev && (sems.includes(prev) || prev === '__all__' || prev === '__unassigned__')) {
+          globalSemSelect.value = prev;
+        } else {
+          globalSemSelect.value = sems[0];
+        }
+        activeSemester = globalSemSelect.value;
+        document.getElementById('deleteSemBtn').hidden = (!activeSemester || activeSemester === '__all__' || activeSemester === '__unassigned__');
+      }
+
+      globalSemSelect.addEventListener('change', () => {
+        activeSemester = globalSemSelect.value;
+        document.getElementById('deleteSemBtn').hidden = (!activeSemester || activeSemester === '__all__' || activeSemester === '__unassigned__');
+        renderAllForTab(currentTabName());
+      });
+
+      // Add-semester toggle
+      const newSemInput = document.getElementById('newSemInput');
+      const addSemBtn = document.getElementById('addSemBtn');
+      const confirmSemBtn = document.getElementById('confirmSemBtn');
+      const cancelSemBtn = document.getElementById('cancelSemBtn');
+
+      addSemBtn.addEventListener('click', () => {
+        newSemInput.hidden = false;
+        confirmSemBtn.hidden = false;
+        cancelSemBtn.hidden = false;
+        addSemBtn.hidden = true;
+        newSemInput.value = '';
+        newSemInput.focus();
+      });
+      cancelSemBtn.addEventListener('click', () => {
+        newSemInput.hidden = true;
+        confirmSemBtn.hidden = true;
+        cancelSemBtn.hidden = true;
+        addSemBtn.hidden = false;
+      });
+      confirmSemBtn.addEventListener('click', () => {
+        const val = newSemInput.value.trim();
+        if (!val) { alert('Enter a semester number or name.'); return; }
+        if (allSemesters().includes(val)) {
+          // Semester already exists — just switch to it
+          globalSemSelect.value = val;
+          activeSemester = val;
+        } else {
+          // Create a placeholder student-less entry by adding a hidden marker
+          // Actually, we just add the option and set activeSemester — students added next will carry this semester
+          const opt = document.createElement('option');
+          opt.value = val;
+          opt.textContent = 'Semester ' + val;
+          globalSemSelect.appendChild(opt);
+          globalSemSelect.value = val;
+          activeSemester = val;
+          // Save the semester in settings so it persists even without students
+          if (!state.settings.semesters) state.settings.semesters = '';
+          const existing = state.settings.semesters ? state.settings.semesters.split(',') : [];
+          if (!existing.includes(val)) { existing.push(val); state.settings.semesters = existing.join(','); pushSave(); }
+        }
+        newSemInput.hidden = true;
+        confirmSemBtn.hidden = true;
+        cancelSemBtn.hidden = true;
+        addSemBtn.hidden = false;
+        renderAllForTab(currentTabName());
+      });
+      newSemInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') confirmSemBtn.click(); });
+
+      document.getElementById('deleteSemBtn').addEventListener('click', () => {
+        if (!activeSemester || activeSemester === '__all__' || activeSemester === '__unassigned__') return;
+        const studentsInSem = state.students.filter(s => s.semester === activeSemester).length;
+        const msg = studentsInSem > 0
+          ? `Delete Semester ${activeSemester} and all its ${studentsInSem} student(s)? This will also permanently delete their attendance records.`
+          : `Delete Semester ${activeSemester}?`;
+
+        if (confirm(msg)) {
+          // Remove students
+          const studentIdsToRemove = new Set(state.students.filter(s => s.semester === activeSemester).map(s => s.id));
+          state.students = state.students.filter(s => s.semester !== activeSemester);
+          // Remove their attendance records
+          state.sessions.forEach(sess => {
+            studentIdsToRemove.forEach(id => {
+              if (sess.records) delete sess.records[id];
+            });
+          });
+          // Remove from settings
+          if (state.settings.semesters) {
+            const existing = state.settings.semesters.split(',').filter(s => s.trim() !== activeSemester);
+            state.settings.semesters = existing.join(',');
+          }
+          activeSemester = '__all__';
+          populateGlobalSemester();
+          renderAllForTab(currentTabName());
+          pushSave();
+        }
+      });
+
+      // ---------- Tabs ----------
+      const tabButtons = document.querySelectorAll("nav.tabs button");
+      const views = document.querySelectorAll("section.view");
+      tabButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+          tabButtons.forEach(b => b.classList.remove("active"));
+          views.forEach(v => v.classList.remove("active"));
+          btn.classList.add("active");
+          document.getElementById("view-" + btn.dataset.tab).classList.add("active");
+          renderAllForTab(btn.dataset.tab);
+        });
+      });
+      function goToTab(name) {
+        document.querySelector('nav.tabs button[data-tab="' + name + '"]').click();
+      }
+      function currentTabName() {
+        const active = document.querySelector("nav.tabs button.active");
+        return active ? active.dataset.tab : "dashboard";
+      }
+      function renderAllForTab(tab) {
+        if (tab === "dashboard") renderDashboard();
+        if (tab === "mark") renderMarkTab();
+        if (tab === "students") renderStudents();
+        if (tab === "subjects") renderSubjects();
+        if (tab === "history") renderHistory();
+        if (tab === "report") renderReport();
+        if (tab === "backup") renderConnectedSheetInfo();
+      }
+
+      function populateSubjectSelect(sel, includeAll) {
+        const subs = sortedSubjects();
+        const prev = sel.value;
+        sel.innerHTML = "";
+        if (includeAll) {
+          const opt = document.createElement("option");
+          opt.value = "__all__"; opt.textContent = "All subjects";
+          sel.appendChild(opt);
+        }
+        subs.forEach(su => {
+          const opt = document.createElement("option");
+          opt.value = su.id; opt.textContent = subjectLabel(su);
+          sel.appendChild(opt);
+        });
+        if (subs.some(s => s.id === prev) || (includeAll && prev === "__all__")) sel.value = prev;
+        else if (subs[0]) sel.value = subs[0].id;
+      }
+
+      // ---------- Dashboard ----------
+      const dashSubject = document.getElementById("dashSubject");
+      const dashType = document.getElementById("dashType");
+      const dashRange = document.getElementById("dashRange");
+      const dashFrom = document.getElementById("dashFrom");
+      const dashTo = document.getElementById("dashTo");
+
+      dashRange.addEventListener("change", () => {
+        const custom = dashRange.value === "custom";
+        document.getElementById("dashCustomFrom").hidden = !custom;
+        document.getElementById("dashCustomTo").hidden = !custom;
+        renderDashboard();
+      });
+      [dashSubject, dashType, dashFrom, dashTo].forEach(el => el.addEventListener("change", renderDashboard));
+
+      function renderDashboard() {
+        populateSubjectSelect(dashSubject, true);
+        const { fromISO, toISO } = rangeToDates(dashRange.value, dashFrom, dashTo);
+        const sessions = filterSessions({ subjectId: dashSubject.value, type: dashType.value, fromISO, toISO });
+        const students = sortedStudents();
+        const semStudentIds = new Set(students.map(s => s.id));
+
+        let sumPresent = 0, sumTotal = 0;
+        const rows = students.map(st => {
+          const semSessions = sessions.filter(s => Object.prototype.hasOwnProperty.call(s.records, st.id));
+          const { present, total } = studentStatsFor(st.id, sessions);
+          sumPresent += present; sumTotal += total;
+          return { st, present, total };
+        });
+        const overallPct = sumTotal > 0 ? fmtPct((sumPresent / sumTotal) * 100) : null;
+
+        document.getElementById("statsRow").innerHTML = `
       <div class="stat"><div class="num">${students.length}</div><div class="label">Students</div></div>
       <div class="stat"><div class="num">${sessions.length}</div><div class="label">Classes held</div></div>
       <div class="stat"><div class="num">${overallPct === null ? "—" : overallPct + "%"}</div><div class="label">Overall attendance</div></div>
     `;
 
-    const tbody = document.querySelector("#dashboardTable tbody");
-    tbody.innerHTML = "";
-    document.getElementById("dashboardEmpty").hidden = rows.length > 0 && state.subjects.length > 0;
-    document.getElementById("dashboardTable").hidden = !(rows.length > 0 && state.subjects.length > 0);
+        const tbody = document.querySelector("#dashboardTable tbody");
+        tbody.innerHTML = "";
+        document.getElementById("dashboardEmpty").hidden = rows.length > 0 && state.subjects.length > 0;
+        document.getElementById("dashboardTable").hidden = !(rows.length > 0 && state.subjects.length > 0);
 
-    rows.forEach(({st, present, total}) => {
-      const pct = total > 0 ? fmtPct((present/total)*100) : null;
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
+        rows.forEach(({ st, present, total }) => {
+          const pct = total > 0 ? fmtPct((present / total) * 100) : null;
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
         <td>${escapeHtml(st.roll)}</td>
         <td>${escapeHtml(st.name)}</td>
         <td>${present}</td>
         <td>${total}</td>
         <td>${pct === null ? '<span class="pct">—</span>' : `<span class="pct ${pctClass(Number(pct))}">${pct}%</span>`}</td>
       `;
-      tbody.appendChild(tr);
-    });
-  }
+          tbody.appendChild(tr);
+        });
+      }
 
-  // ---------- Students ----------
-  function renderStudents(){
-    const students = sortedStudents();
-    const tbody = document.querySelector("#studentsTable tbody");
-    tbody.innerHTML = "";
-    document.getElementById("studentsEmpty").hidden = students.length > 0;
-    document.getElementById("studentsTable").hidden = students.length === 0;
-    document.getElementById("studentsForSemLabel").textContent = activeSemester ? `— Semester ${activeSemester}` : '';
+      // ---------- Students ----------
+      function renderStudents() {
+        const students = sortedStudents();
+        const tbody = document.querySelector("#studentsTable tbody");
+        tbody.innerHTML = "";
+        document.getElementById("studentsEmpty").hidden = students.length > 0;
+        document.getElementById("studentsTable").hidden = students.length === 0;
+        document.getElementById("studentsForSemLabel").textContent = activeSemester && activeSemester !== '__all__' && activeSemester !== '__unassigned__' ? `— Semester ${activeSemester}` : '';
 
-    students.forEach(st => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
+        const bulkMoveWrapper = document.getElementById("bulkMoveWrapper");
+        if (students.length > 0 && activeSemester && activeSemester !== '__all__') {
+          bulkMoveWrapper.hidden = false;
+          const bulkMoveSelect = document.getElementById("bulkMoveSelect");
+          const sems = allSemesters().filter(s => s !== activeSemester);
+          bulkMoveSelect.innerHTML = sems.map(s => `<option value="${s}">Semester ${s}</option>`).join("");
+          if (sems.length === 0) {
+            bulkMoveSelect.innerHTML = `<option value="">(Create a semester first)</option>`;
+            document.getElementById("bulkMoveBtn").disabled = true;
+          } else {
+            document.getElementById("bulkMoveBtn").disabled = false;
+          }
+        } else {
+          bulkMoveWrapper.hidden = true;
+        }
+
+        students.forEach(st => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
         <td>${escapeHtml(st.roll)}</td>
         <td>${escapeHtml(st.name)}</td>
         <td><span class="sem-badge">Sem ${escapeHtml(st.semester || '—')}</span></td>
         <td style="text-align:right;"><button class="btn small danger" data-id="${st.id}">Remove</button></td>
       `;
-      tr.querySelector("button").addEventListener("click", () => {
-        if(confirm(`Remove ${st.name} from the class list? Their past attendance records will also be removed.`)){
-          state.students = state.students.filter(s => s.id !== st.id);
-          state.sessions.forEach(s => { delete s.records[st.id]; });
+          tr.querySelector("button").addEventListener("click", () => {
+            if (confirm(`Remove ${st.name} from the class list? Their past attendance records will also be removed.`)) {
+              state.students = state.students.filter(s => s.id !== st.id);
+              state.sessions.forEach(s => { delete s.records[st.id]; });
+              populateGlobalSemester();
+              renderStudents(); renderDashboard();
+              pushSave();
+            }
+          });
+          tbody.appendChild(tr);
+        });
+      }
+
+      document.getElementById("addStudent").addEventListener("click", () => {
+        const rollInput = document.getElementById("newRoll");
+        const nameInput = document.getElementById("newName");
+        const roll = rollInput.value.trim();
+        const name = nameInput.value.trim();
+        if (!roll || !name) { alert("Enter both a roll number and a name."); return; }
+        if (!activeSemester || activeSemester === '__all__' || activeSemester === '__unassigned__') {
+          alert("Switch to a specific semester first (not 'All semesters' or 'Unassigned') to add a student."); return;
+        }
+        if (state.students.some(s => s.roll.toLowerCase() === roll.toLowerCase() && s.semester === activeSemester)) {
+          alert("That roll number is already on the list for this semester."); return;
+        }
+        state.students.push({ id: uid(), roll, name, semester: activeSemester });
+        rollInput.value = ""; nameInput.value = "";
+        rollInput.focus();
+        populateGlobalSemester();
+        renderStudents(); renderDashboard();
+        pushSave();
+      });
+
+      // Bulk Add Students
+      document.getElementById("bulkAddToggleBtn").addEventListener("click", () => {
+        document.getElementById("bulkAddSection").hidden = false;
+        document.getElementById("bulkAddToggleBtn").hidden = true;
+        document.getElementById("bulkAddText").value = "";
+        document.getElementById("bulkAddText").focus();
+      });
+      document.getElementById("bulkAddCancelBtn").addEventListener("click", () => {
+        document.getElementById("bulkAddSection").hidden = true;
+        document.getElementById("bulkAddToggleBtn").hidden = false;
+      });
+      document.getElementById("bulkAddConfirmBtn").addEventListener("click", () => {
+        if (!activeSemester || activeSemester === '__all__' || activeSemester === '__unassigned__') {
+          alert("Switch to a specific semester first (not 'All semesters' or 'Unassigned') to add students."); return;
+        }
+        const text = document.getElementById("bulkAddText").value.trim();
+        if (!text) return;
+        const lines = text.split(/\r?\n/);
+        let added = 0;
+        lines.forEach(line => {
+          const parts = line.trim().split(/[\\t ]+/);
+          if (parts.length < 2) return;
+          const roll = parts[0].trim();
+          const name = parts.slice(1).join(" ").trim();
+          if (!roll || !name) return;
+          if (state.students.some(s => s.roll.toLowerCase() === roll.toLowerCase() && s.semester === activeSemester)) return;
+          state.students.push({ id: uid(), roll, name, semester: activeSemester });
+          added++;
+        });
+        document.getElementById("bulkAddSection").hidden = true;
+        document.getElementById("bulkAddToggleBtn").hidden = false;
+        if (added > 0) {
+          populateGlobalSemester();
+          renderStudents(); renderDashboard();
+          pushSave();
+          alert(`Successfully added ${added} student(s) to Semester ${activeSemester}.`);
+        } else {
+          alert("No valid new students found to add. Make sure you pasted Roll and Name.");
+        }
+      });
+
+      // Bulk Move Students
+      document.getElementById("bulkMoveBtn").addEventListener("click", () => {
+        const targetSem = document.getElementById("bulkMoveSelect").value;
+        if (!targetSem) return;
+        const students = sortedStudents(); // Gets all currently visible students
+        if (!students.length) return;
+        if (confirm(`Move all ${students.length} currently visible student(s) to Semester ${targetSem}?`)) {
+          students.forEach(st => {
+            const studentInState = state.students.find(s => s.id === st.id);
+            if (studentInState) studentInState.semester = targetSem;
+          });
           populateGlobalSemester();
           renderStudents(); renderDashboard();
           pushSave();
         }
       });
-      tbody.appendChild(tr);
-    });
-  }
 
-  document.getElementById("addStudent").addEventListener("click", () => {
-    const rollInput = document.getElementById("newRoll");
-    const nameInput = document.getElementById("newName");
-    const roll = rollInput.value.trim();
-    const name = nameInput.value.trim();
-    if(!roll || !name){ alert("Enter both a roll number and a name."); return; }
-    if(!activeSemester || activeSemester === '__all__' || activeSemester === '__unassigned__'){
-      alert("Switch to a specific semester first (not 'All semesters' or 'Unassigned') to add a student."); return;
-    }
-    if(state.students.some(s => s.roll.toLowerCase() === roll.toLowerCase() && s.semester === activeSemester)){
-      alert("That roll number is already on the list for this semester."); return;
-    }
-    state.students.push({ id: uid(), roll, name, semester: activeSemester });
-    rollInput.value = ""; nameInput.value = "";
-    rollInput.focus();
-    populateGlobalSemester();
-    renderStudents(); renderDashboard();
-    pushSave();
-  });
+      // ---------- Subjects ----------
+      function renderSubjects() {
+        const subs = sortedSubjects();
+        const tbody = document.querySelector("#subjectsTable tbody");
+        tbody.innerHTML = "";
+        document.getElementById("subjectsEmpty").hidden = subs.length > 0;
+        document.getElementById("subjectsTable").hidden = subs.length === 0;
 
-  // ---------- Subjects ----------
-  function renderSubjects(){
-    const subs = sortedSubjects();
-    const tbody = document.querySelector("#subjectsTable tbody");
-    tbody.innerHTML = "";
-    document.getElementById("subjectsEmpty").hidden = subs.length > 0;
-    document.getElementById("subjectsTable").hidden = subs.length === 0;
-
-    subs.forEach(su => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
+        subs.forEach(su => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
         <td>${escapeHtml(su.code || "—")}</td>
         <td>${escapeHtml(su.name)}</td>
         <td style="text-align:right;"><button class="btn small danger" data-id="${su.id}">Remove</button></td>
       `;
-      tr.querySelector("button").addEventListener("click", () => {
-        const count = state.sessions.filter(s => s.subjectId === su.id).length;
-        const msg = count > 0
-          ? `Remove "${su.name}"? This also deletes ${count} recorded class${count===1?"":"es"} for it.`
-          : `Remove "${su.name}"?`;
-        if(confirm(msg)){
-          state.subjects = state.subjects.filter(s => s.id !== su.id);
-          state.sessions = state.sessions.filter(s => s.subjectId !== su.id);
-          renderSubjects(); renderDashboard();
-          pushSave();
+          tr.querySelector("button").addEventListener("click", () => {
+            const count = state.sessions.filter(s => s.subjectId === su.id).length;
+            const msg = count > 0
+              ? `Remove "${su.name}"? This also deletes ${count} recorded class${count === 1 ? "" : "es"} for it.`
+              : `Remove "${su.name}"?`;
+            if (confirm(msg)) {
+              state.subjects = state.subjects.filter(s => s.id !== su.id);
+              state.sessions = state.sessions.filter(s => s.subjectId !== su.id);
+              renderSubjects(); renderDashboard();
+              pushSave();
+            }
+          });
+          tbody.appendChild(tr);
+        });
+      }
+
+      document.getElementById("addSubject").addEventListener("click", () => {
+        const codeInput = document.getElementById("newSubCode");
+        const nameInput = document.getElementById("newSubName");
+        const code = codeInput.value.trim();
+        const name = nameInput.value.trim();
+        if (!name) { alert("Enter a subject name."); return; }
+        state.subjects.push({ id: uid(), code, name });
+        codeInput.value = ""; nameInput.value = "";
+        renderSubjects(); renderDashboard();
+        pushSave();
+      });
+
+      // ---------- Mark attendance ----------
+      const markSubject = document.getElementById("markSubject");
+      const sessionDateInput = document.getElementById("sessionDate");
+      const typeTheoryBtn = document.getElementById("typeTheoryBtn");
+      const typeLabBtn = document.getElementById("typeLabBtn");
+      sessionDateInput.value = todayISO();
+
+      function setMarkType(type) {
+        currentMarkType = type;
+        typeTheoryBtn.classList.toggle("on", type === "Theory");
+        typeLabBtn.classList.toggle("on", type === "Lab");
+        loadSessionFor(sessionDateInput.value, markSubject.value, currentMarkType);
+      }
+      typeTheoryBtn.addEventListener("click", () => setMarkType("Theory"));
+      typeLabBtn.addEventListener("click", () => setMarkType("Lab"));
+      markSubject.addEventListener("change", () => loadSessionFor(sessionDateInput.value, markSubject.value, currentMarkType));
+      sessionDateInput.addEventListener("change", () => loadSessionFor(sessionDateInput.value, markSubject.value, currentMarkType));
+
+      function loadSessionFor(dateISO, subjectId, type) {
+        document.getElementById("markNoSubject").hidden = state.subjects.length > 0;
+        document.getElementById("markBody").hidden = state.subjects.length === 0;
+        if (state.subjects.length === 0) return;
+
+        const semStudents = sortedStudents();
+        const existing = state.sessions.find(s => s.date === dateISO && s.subjectId === subjectId && s.type === type);
+        markTemp = {};
+        if (existing) {
+          editingSessionId = existing.id;
+          semStudents.forEach(st => {
+            markTemp[st.id] = Object.prototype.hasOwnProperty.call(existing.records, st.id) ? existing.records[st.id] : true;
+          });
+          document.getElementById("sessionStatus").textContent = "Editing the class already recorded for this date, subject and type.";
+        } else {
+          editingSessionId = null;
+          semStudents.forEach(st => { markTemp[st.id] = true; });
+          document.getElementById("sessionStatus").textContent = "";
         }
-      });
-      tbody.appendChild(tr);
-    });
-  }
+        renderMarkList();
+      }
 
-  document.getElementById("addSubject").addEventListener("click", () => {
-    const codeInput = document.getElementById("newSubCode");
-    const nameInput = document.getElementById("newSubName");
-    const code = codeInput.value.trim();
-    const name = nameInput.value.trim();
-    if(!name){ alert("Enter a subject name."); return; }
-    state.subjects.push({ id: uid(), code, name });
-    codeInput.value = ""; nameInput.value = "";
-    renderSubjects(); renderDashboard();
-    pushSave();
-  });
+      function renderMarkList() {
+        const students = sortedStudents();
+        const list = document.getElementById("markList");
+        list.innerHTML = "";
+        document.getElementById("markEmpty").hidden = students.length > 0;
+        document.getElementById("saveSession").hidden = students.length === 0;
 
-  // ---------- Mark attendance ----------
-  const markSubject = document.getElementById("markSubject");
-  const sessionDateInput = document.getElementById("sessionDate");
-  const typeTheoryBtn = document.getElementById("typeTheoryBtn");
-  const typeLabBtn = document.getElementById("typeLabBtn");
-  sessionDateInput.value = todayISO();
-
-  function setMarkType(type){
-    currentMarkType = type;
-    typeTheoryBtn.classList.toggle("on", type === "Theory");
-    typeLabBtn.classList.toggle("on", type === "Lab");
-    loadSessionFor(sessionDateInput.value, markSubject.value, currentMarkType);
-  }
-  typeTheoryBtn.addEventListener("click", () => setMarkType("Theory"));
-  typeLabBtn.addEventListener("click", () => setMarkType("Lab"));
-  markSubject.addEventListener("change", () => loadSessionFor(sessionDateInput.value, markSubject.value, currentMarkType));
-  sessionDateInput.addEventListener("change", () => loadSessionFor(sessionDateInput.value, markSubject.value, currentMarkType));
-
-  function loadSessionFor(dateISO, subjectId, type){
-    document.getElementById("markNoSubject").hidden = state.subjects.length > 0;
-    document.getElementById("markBody").hidden = state.subjects.length === 0;
-    if(state.subjects.length === 0) return;
-
-    const semStudents = sortedStudents();
-    const existing = state.sessions.find(s => s.date === dateISO && s.subjectId === subjectId && s.type === type);
-    markTemp = {};
-    if(existing){
-      editingSessionId = existing.id;
-      semStudents.forEach(st => {
-        markTemp[st.id] = Object.prototype.hasOwnProperty.call(existing.records, st.id) ? existing.records[st.id] : true;
-      });
-      document.getElementById("sessionStatus").textContent = "Editing the class already recorded for this date, subject and type.";
-    } else {
-      editingSessionId = null;
-      semStudents.forEach(st => { markTemp[st.id] = true; });
-      document.getElementById("sessionStatus").textContent = "";
-    }
-    renderMarkList();
-  }
-
-  function renderMarkList(){
-    const students = sortedStudents();
-    const list = document.getElementById("markList");
-    list.innerHTML = "";
-    document.getElementById("markEmpty").hidden = students.length > 0;
-    document.getElementById("saveSession").hidden = students.length === 0;
-
-    students.forEach(st => {
-      const present = markTemp[st.id] !== false;
-      const row = document.createElement("div");
-      row.className = "row-inline";
-      row.style.justifyContent = "space-between";
-      row.style.padding = "8px 0";
-      row.style.borderBottom = "1px solid var(--line)";
-      row.innerHTML = `
+        students.forEach(st => {
+          const present = markTemp[st.id] !== false;
+          const row = document.createElement("div");
+          row.className = "row-inline";
+          row.style.justifyContent = "space-between";
+          row.style.padding = "8px 0";
+          row.style.borderBottom = "1px solid var(--line)";
+          row.innerHTML = `
         <div><strong>${escapeHtml(st.name)}</strong> <span style="color:var(--muted);">#${escapeHtml(st.roll)}</span></div>
         <div class="mark-toggle">
           <button type="button" class="mark-btn present ${present ? "on" : ""}" data-id="${st.id}" data-val="true">Present</button>
           <button type="button" class="mark-btn absent ${!present ? "on" : ""}" data-id="${st.id}" data-val="false">Absent</button>
         </div>
       `;
-      row.querySelectorAll(".mark-btn").forEach(btn => {
-        btn.addEventListener("click", () => { markTemp[st.id] = btn.dataset.val === "true"; renderMarkList(); });
+          row.querySelectorAll(".mark-btn").forEach(btn => {
+            btn.addEventListener("click", () => { markTemp[st.id] = btn.dataset.val === "true"; renderMarkList(); });
+          });
+          list.appendChild(row);
+        });
+      }
+
+      document.getElementById("markAllPresent").addEventListener("click", () => {
+        sortedStudents().forEach(st => markTemp[st.id] = true); renderMarkList();
       });
-      list.appendChild(row);
-    });
-  }
+      document.getElementById("markAllAbsent").addEventListener("click", () => {
+        sortedStudents().forEach(st => markTemp[st.id] = false); renderMarkList();
+      });
 
-  document.getElementById("markAllPresent").addEventListener("click", () => {
-    sortedStudents().forEach(st => markTemp[st.id] = true); renderMarkList();
-  });
-  document.getElementById("markAllAbsent").addEventListener("click", () => {
-    sortedStudents().forEach(st => markTemp[st.id] = false); renderMarkList();
-  });
+      document.getElementById("saveSession").addEventListener("click", () => {
+        const dateISO = sessionDateInput.value;
+        if (!dateISO) { alert("Pick a date for this class first."); return; }
+        if (state.students.length === 0) { alert("Add students before recording attendance."); return; }
+        if (!markSubject.value) { alert("Add and pick a subject first."); return; }
 
-  document.getElementById("saveSession").addEventListener("click", () => {
-    const dateISO = sessionDateInput.value;
-    if(!dateISO){ alert("Pick a date for this class first."); return; }
-    if(state.students.length === 0){ alert("Add students before recording attendance."); return; }
-    if(!markSubject.value){ alert("Add and pick a subject first."); return; }
+        const records = {};
+        sortedStudents().forEach(st => { records[st.id] = markTemp[st.id] !== false; });
 
-    const records = {};
-    sortedStudents().forEach(st => { records[st.id] = markTemp[st.id] !== false; });
+        if (editingSessionId) {
+          const s = state.sessions.find(s => s.id === editingSessionId);
+          s.records = records;
+        } else {
+          state.sessions.push({ id: uid(), date: dateISO, subjectId: markSubject.value, type: currentMarkType, records });
+        }
+        document.getElementById("sessionStatus").textContent = "Saved.";
+        renderDashboard();
+        pushSave();
+      });
 
-    if(editingSessionId){
-      const s = state.sessions.find(s => s.id === editingSessionId);
-      s.records = records;
-    } else {
-      state.sessions.push({ id: uid(), date: dateISO, subjectId: markSubject.value, type: currentMarkType, records });
-    }
-    document.getElementById("sessionStatus").textContent = "Saved.";
-    renderDashboard();
-    pushSave();
-  });
+      function renderMarkTab() {
+        populateSubjectSelect(markSubject, false);
+        setMarkTypeButtonsOnly(currentMarkType);
+        loadSessionFor(sessionDateInput.value || todayISO(), markSubject.value, currentMarkType);
+      }
+      function setMarkTypeButtonsOnly(type) {
+        typeTheoryBtn.classList.toggle("on", type === "Theory");
+        typeLabBtn.classList.toggle("on", type === "Lab");
+      }
 
-  function renderMarkTab(){
-    populateSubjectSelect(markSubject, false);
-    setMarkTypeButtonsOnly(currentMarkType);
-    loadSessionFor(sessionDateInput.value || todayISO(), markSubject.value, currentMarkType);
-  }
-  function setMarkTypeButtonsOnly(type){
-    typeTheoryBtn.classList.toggle("on", type === "Theory");
-    typeLabBtn.classList.toggle("on", type === "Lab");
-  }
+      // ---------- History ----------
+      const histSubject = document.getElementById("histSubject");
+      histSubject.addEventListener("change", renderHistory);
 
-  // ---------- History ----------
-  const histSubject = document.getElementById("histSubject");
-  histSubject.addEventListener("change", renderHistory);
+      function renderHistory() {
+        populateSubjectSelect(histSubject, true);
+        const tbody = document.querySelector("#historyTable tbody");
+        tbody.innerHTML = "";
+        let sessions = [...state.sessions];
+        if (histSubject.value && histSubject.value !== "__all__") sessions = sessions.filter(s => s.subjectId === histSubject.value);
+        sessions.sort((a, b) => b.date.localeCompare(a.date));
 
-  function renderHistory(){
-    populateSubjectSelect(histSubject, true);
-    const tbody = document.querySelector("#historyTable tbody");
-    tbody.innerHTML = "";
-    let sessions = [...state.sessions];
-    if(histSubject.value && histSubject.value !== "__all__") sessions = sessions.filter(s => s.subjectId === histSubject.value);
-    sessions.sort((a,b) => b.date.localeCompare(a.date));
+        document.getElementById("historyEmpty").hidden = sessions.length > 0;
+        document.getElementById("historyTable").hidden = sessions.length === 0;
 
-    document.getElementById("historyEmpty").hidden = sessions.length > 0;
-    document.getElementById("historyTable").hidden = sessions.length === 0;
-
-    sessions.forEach(s => {
-      const total = Object.keys(s.records).length;
-      const present = Object.values(s.records).filter(Boolean).length;
-      const sub = state.subjects.find(x => x.id === s.subjectId);
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
+        sessions.forEach(s => {
+          const total = Object.keys(s.records).length;
+          const present = Object.values(s.records).filter(Boolean).length;
+          const sub = state.subjects.find(x => x.id === s.subjectId);
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
         <td>${formatDate(s.date)}</td>
         <td>${sub ? escapeHtml(subjectLabel(sub)) : "—"}</td>
         <td><span class="badge ${s.type === "Lab" ? "lab" : "theory"}">${s.type}</span></td>
@@ -1010,95 +1600,95 @@
           <button class="btn small danger" data-act="delete">Delete</button>
         </td>
       `;
-      tr.querySelector('[data-act="edit"]').addEventListener("click", () => {
-        goToTab("mark");
-        markSubject.value = s.subjectId;
-        sessionDateInput.value = s.date;
-        currentMarkType = s.type;
-        setMarkTypeButtonsOnly(currentMarkType);
-        loadSessionFor(s.date, s.subjectId, s.type);
+          tr.querySelector('[data-act="edit"]').addEventListener("click", () => {
+            goToTab("mark");
+            markSubject.value = s.subjectId;
+            sessionDateInput.value = s.date;
+            currentMarkType = s.type;
+            setMarkTypeButtonsOnly(currentMarkType);
+            loadSessionFor(s.date, s.subjectId, s.type);
+          });
+          tr.querySelector('[data-act="delete"]').addEventListener("click", () => {
+            if (confirm(`Delete the class recorded on ${formatDate(s.date)}? This can't be undone.`)) {
+              state.sessions = state.sessions.filter(x => x.id !== s.id);
+              renderHistory(); renderDashboard();
+              pushSave();
+            }
+          });
+          tbody.appendChild(tr);
+        });
+      }
+
+      // ---------- Report ----------
+      const setUniversity = document.getElementById("setUniversity");
+      const setSchool = document.getElementById("setSchool");
+      const setProgram = document.getElementById("setProgram");
+      const setFaculty = document.getElementById("setFaculty");
+      const repSubject = document.getElementById("repSubject");
+      const repType = document.getElementById("repType");
+      const repRange = document.getElementById("repRange");
+      const repFrom = document.getElementById("repFrom");
+      const repTo = document.getElementById("repTo");
+
+      [setUniversity, setSchool, setProgram, setFaculty].forEach(el => {
+        el.addEventListener("input", () => {
+          state.settings.university = setUniversity.value;
+          state.settings.school = setSchool.value;
+          state.settings.program = setProgram.value;
+          state.settings.faculty = setFaculty.value;
+          renderReportPreviewOnly();
+        });
+        el.addEventListener("change", () => pushSave());
       });
-      tr.querySelector('[data-act="delete"]').addEventListener("click", () => {
-        if(confirm(`Delete the class recorded on ${formatDate(s.date)}? This can't be undone.`)){
-          state.sessions = state.sessions.filter(x => x.id !== s.id);
-          renderHistory(); renderDashboard();
-          pushSave();
+      repRange.addEventListener("change", () => {
+        const custom = repRange.value === "custom";
+        document.getElementById("repCustomFrom").hidden = !custom;
+        document.getElementById("repCustomTo").hidden = !custom;
+        renderReportPreviewOnly();
+      });
+      [repSubject, repType, repFrom, repTo].forEach(el => el.addEventListener("change", renderReportPreviewOnly));
+
+      function periodLabel(fromISO, toISO) {
+        if (!fromISO || !toISO) return "All recorded classes";
+        const s = new Date(fromISO + "T00:00:00"), e = new Date(toISO + "T00:00:00");
+        const sMon = s.toLocaleString("default", { month: "long" }), eMon = e.toLocaleString("default", { month: "long" });
+        const sYear = s.getFullYear(), eYear = e.getFullYear();
+        if (sYear === eYear && sMon === eMon) return `${sMon} ${sYear}`;
+        if (sYear === eYear) return `${sMon}-${eMon} ${sYear}`;
+        return `${sMon} ${sYear} - ${eMon} ${eYear}`;
+      }
+
+      function buildReportData() {
+        const subjectId = repSubject.value;
+        const sub = state.subjects.find(s => s.id === subjectId);
+        const { fromISO, toISO } = rangeToDates(repRange.value, repFrom, repTo);
+        const sessions = filterSessions({ subjectId, type: repType.value, fromISO, toISO });
+
+        const dates = sessions.map(s => s.date).sort();
+        const labelFrom = fromISO || dates[0] || todayISO();
+        const labelTo = toISO || dates[dates.length - 1] || todayISO();
+
+        const rows = sortedStudents().map((st, i) => {
+          const { present, total } = studentStatsFor(st.id, sessions);
+          return { sno: i + 1, roll: st.roll, name: st.name, semester: st.semester, total, present, pct: total > 0 ? fmtPct((present / total) * 100) : "0" };
+        });
+
+        const typeLabel = repType.value === "All" ? "Theory & Lab" : repType.value;
+        return { sub, rows, totalClasses: sessions.length, period: periodLabel(dates.length ? labelFrom : fromISO, dates.length ? labelTo : toISO), typeLabel };
+      }
+
+      function renderReportPreviewOnly() {
+        const data = buildReportData();
+        const s = state.settings;
+        const preview = document.getElementById("reportPreview");
+        if (!data.sub) {
+          preview.innerHTML = `<div class="empty">Add a subject in the Subjects tab to generate a report.</div>`;
+          return;
         }
-      });
-      tbody.appendChild(tr);
-    });
-  }
-
-  // ---------- Report ----------
-  const setUniversity = document.getElementById("setUniversity");
-  const setSchool = document.getElementById("setSchool");
-  const setProgram = document.getElementById("setProgram");
-  const setFaculty = document.getElementById("setFaculty");
-  const repSubject = document.getElementById("repSubject");
-  const repType = document.getElementById("repType");
-  const repRange = document.getElementById("repRange");
-  const repFrom = document.getElementById("repFrom");
-  const repTo = document.getElementById("repTo");
-
-  [setUniversity, setSchool, setProgram, setFaculty].forEach(el => {
-    el.addEventListener("input", () => {
-      state.settings.university = setUniversity.value;
-      state.settings.school = setSchool.value;
-      state.settings.program = setProgram.value;
-      state.settings.faculty = setFaculty.value;
-      renderReportPreviewOnly();
-    });
-    el.addEventListener("change", () => pushSave());
-  });
-  repRange.addEventListener("change", () => {
-    const custom = repRange.value === "custom";
-    document.getElementById("repCustomFrom").hidden = !custom;
-    document.getElementById("repCustomTo").hidden = !custom;
-    renderReportPreviewOnly();
-  });
-  [repSubject, repType, repFrom, repTo].forEach(el => el.addEventListener("change", renderReportPreviewOnly));
-
-  function periodLabel(fromISO, toISO){
-    if(!fromISO || !toISO) return "All recorded classes";
-    const s = new Date(fromISO + "T00:00:00"), e = new Date(toISO + "T00:00:00");
-    const sMon = s.toLocaleString("default", { month: "long" }), eMon = e.toLocaleString("default", { month: "long" });
-    const sYear = s.getFullYear(), eYear = e.getFullYear();
-    if(sYear === eYear && sMon === eMon) return `${sMon} ${sYear}`;
-    if(sYear === eYear) return `${sMon}-${eMon} ${sYear}`;
-    return `${sMon} ${sYear} - ${eMon} ${eYear}`;
-  }
-
-  function buildReportData(){
-    const subjectId = repSubject.value;
-    const sub = state.subjects.find(s => s.id === subjectId);
-    const { fromISO, toISO } = rangeToDates(repRange.value, repFrom, repTo);
-    const sessions = filterSessions({ subjectId, type: repType.value, fromISO, toISO });
-
-    const dates = sessions.map(s => s.date).sort();
-    const labelFrom = fromISO || dates[0] || todayISO();
-    const labelTo = toISO || dates[dates.length-1] || todayISO();
-
-    const rows = sortedStudents().map((st, i) => {
-      const { present, total } = studentStatsFor(st.id, sessions);
-      return { sno: i+1, roll: st.roll, name: st.name, semester: st.semester, total, present, pct: total>0 ? fmtPct((present/total)*100) : "0" };
-    });
-
-    const typeLabel = repType.value === "All" ? "Theory & Lab" : repType.value;
-    return { sub, rows, totalClasses: sessions.length, period: periodLabel(dates.length?labelFrom:fromISO, dates.length?labelTo:toISO), typeLabel };
-  }
-
-  function renderReportPreviewOnly(){
-    const data = buildReportData();
-    const s = state.settings;
-    const preview = document.getElementById("reportPreview");
-    if(!data.sub){
-      preview.innerHTML = `<div class="empty">Add a subject in the Subjects tab to generate a report.</div>`;
-      return;
-    }
-    const rowsHtml = data.rows.map(r => `
+        const rowsHtml = data.rows.map(r => `
       <tr><td>${r.sno}</td><td>${escapeHtml(r.name)}</td><td>${escapeHtml(r.roll)}</td><td>${r.total}</td><td>${r.present}</td><td>${r.pct}</td></tr>
     `).join("");
-    preview.innerHTML = `
+        preview.innerHTML = `
       <div class="rhead name">${escapeHtml(s.university || "")}</div>
       <div class="rhead">${escapeHtml(s.school || "")}</div>
       <div class="rhead">${escapeHtml(s.program || "")}</div>
@@ -1111,38 +1701,38 @@
       </table>
       <div class="sig">${s.faculty ? escapeHtml(s.faculty) + '<br>' : ''}<span style="color:var(--muted);font-size:0.82rem;">Faculty Name &amp; Signature</span></div>
     `;
-  }
+      }
 
-  function renderReport(){
-    setUniversity.value = state.settings.university;
-    setSchool.value = state.settings.school;
-    setProgram.value = state.settings.program;
-    setFaculty.value = state.settings.faculty;
-    populateSubjectSelect(repSubject, false);
-    renderReportPreviewOnly();
-  }
+      function renderReport() {
+        setUniversity.value = state.settings.university;
+        setSchool.value = state.settings.school;
+        setProgram.value = state.settings.program;
+        setFaculty.value = state.settings.faculty;
+        populateSubjectSelect(repSubject, false);
+        renderReportPreviewOnly();
+      }
 
-  document.getElementById("printReport").addEventListener("click", () => {
-    const w = window.open("", "_blank");
-    w.document.write(`<html><head><title>Attendance report</title><style>
+      document.getElementById("printReport").addEventListener("click", () => {
+        const w = window.open("", "_blank");
+        w.document.write(`<html><head><title>Attendance report</title><style>
       body{font-family:Georgia,serif;padding:30px;color:#1B2430;}
       .rhead{text-align:center;margin-bottom:2px;} .name{font-size:1.2rem;font-weight:700;}
       table{width:100%;border-collapse:collapse;margin-top:16px;font-size:0.9rem;}
       th,td{border:1px solid #1B2430;padding:6px 8px;} .sig{margin-top:50px;text-align:right;}
     </style></head><body>${document.getElementById("reportPreview").innerHTML}</body></html>`);
-    w.document.close();
-    w.focus();
-    setTimeout(() => w.print(), 300);
-  });
+        w.document.close();
+        w.focus();
+        setTimeout(() => w.print(), 300);
+      });
 
-  document.getElementById("downloadDoc").addEventListener("click", () => {
-    const data = buildReportData();
-    if(!data.sub){ alert("Add a subject first."); return; }
-    const s = state.settings;
-    const rowsHtml = data.rows.map(r => `
+      document.getElementById("downloadDoc").addEventListener("click", () => {
+        const data = buildReportData();
+        if (!data.sub) { alert("Add a subject first."); return; }
+        const s = state.settings;
+        const rowsHtml = data.rows.map(r => `
       <tr><td>${r.sno}</td><td>${escapeHtml(r.name)}</td><td>${escapeHtml(r.roll)}</td><td align="center">${r.total}</td><td align="center">${r.present}</td><td align="center">${r.pct}</td></tr>
     `).join("");
-    const html = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        const html = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
     <head><meta charset='utf-8'><title>Attendance report</title>
     <style>
       body{ font-family: Calibri, Arial, sans-serif; font-size: 11pt; }
@@ -1165,200 +1755,201 @@
       <p style="text-align:right;margin-top:60px;">${escapeHtml(s.faculty || "")}</p>
       <p style="text-align:right;">Faculty Name &amp; Signature</p>
     </body></html>`;
-    const blob = new Blob(['\ufeff', html], { type: "application/msword" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `attendance-${data.sub.code || data.sub.name}-${todayISO()}.doc`;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  });
+        const blob = new Blob(['\ufeff', html], { type: "application/msword" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `attendance-${data.sub.code || data.sub.name}-${todayISO()}.doc`;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
 
-  // ---------- Connect / sync ----------
-  function resolveApiUrl(){
-    const params = new URLSearchParams(location.search);
-    const fromParam = params.get("api");
-    if(fromParam){
-      try{ localStorage.setItem(API_URL_KEY, fromParam); }catch(e){}
-      return fromParam;
-    }
-    try{ return localStorage.getItem(API_URL_KEY); }catch(e){ return null; }
-  }
+      // ---------- Connect / sync ----------
+      function resolveApiUrl() {
+        const params = new URLSearchParams(location.search);
+        const fromParam = params.get("api");
+        if (fromParam) {
+          try { localStorage.setItem(API_URL_KEY, fromParam); } catch (e) { }
+          return fromParam;
+        }
+        try { return localStorage.getItem(API_URL_KEY); } catch (e) { return null; }
+      }
 
-  function showConnect(prefillUrl, errorMsg){
-    document.getElementById("loadingScreen").hidden = true;
-    document.getElementById("appRoot").hidden = true;
-    document.getElementById("connectScreen").hidden = false;
-    document.getElementById("refreshBtn").hidden = true;
-    setStatus("");
-    const input = document.getElementById("apiUrlInput");
-    if(prefillUrl) input.value = prefillUrl;
-    const errEl = document.getElementById("connectError");
-    if(errorMsg){ errEl.textContent = errorMsg; errEl.hidden = false; } else { errEl.hidden = true; }
-  }
+      function showConnect(prefillUrl, errorMsg) {
+        document.getElementById("loadingScreen").hidden = true;
+        document.getElementById("appRoot").hidden = true;
+        document.getElementById("connectScreen").hidden = false;
+        document.getElementById("refreshBtn").hidden = true;
+        setStatus("");
+        const input = document.getElementById("apiUrlInput");
+        if (prefillUrl) input.value = prefillUrl;
+        const errEl = document.getElementById("connectError");
+        if (errorMsg) { errEl.textContent = errorMsg; errEl.hidden = false; } else { errEl.hidden = true; }
+      }
 
-  async function tryConnect(url){
-    document.getElementById("connectScreen").hidden = true;
-    document.getElementById("loadingScreen").hidden = false;
-    document.getElementById("loadingScreen").textContent = "Connecting to your Google Sheet…";
-    apiUrl = url;
-    try{
-      const pingData = await apiGet("ping");
-      connectedSheetName = pingData.sheet || "";
-      document.getElementById("loadingScreen").textContent = "Loading your data…";
-      await fetchAll();
-      try{ localStorage.setItem(API_URL_KEY, url); }catch(e){}
-      history.replaceState(null, "", location.pathname + "?api=" + encodeURIComponent(url));
-      document.getElementById("loadingScreen").hidden = true;
-      document.getElementById("appRoot").hidden = false;
-      document.getElementById("refreshBtn").hidden = false;
-      setStatus("Synced");
-      populateGlobalSemester();
-      renderAllForTab(currentTabName());
-    }catch(err){
-      console.error(err);
-      apiUrl = null;
-      showConnect(url, "Couldn't connect: " + err.message + ". Check that the URL is the Web app link ending in /exec, and that it's deployed with access set to \"Anyone\".");
-    }
-  }
+      async function tryConnect(url) {
+        document.getElementById("connectScreen").hidden = true;
+        document.getElementById("loadingScreen").hidden = false;
+        document.getElementById("loadingScreen").textContent = "Connecting to your Google Sheet…";
+        apiUrl = url;
+        try {
+          const pingData = await apiGet("ping");
+          connectedSheetName = pingData.sheet || "";
+          document.getElementById("loadingScreen").textContent = "Loading your data…";
+          await fetchAll();
+          try { localStorage.setItem(API_URL_KEY, url); } catch (e) { }
+          history.replaceState(null, "", location.pathname + "?api=" + encodeURIComponent(url));
+          document.getElementById("loadingScreen").hidden = true;
+          document.getElementById("appRoot").hidden = false;
+          document.getElementById("refreshBtn").hidden = false;
+          setStatus("Synced");
+          populateGlobalSemester();
+          renderAllForTab(currentTabName());
+        } catch (err) {
+          console.error(err);
+          apiUrl = null;
+          showConnect(url, "Couldn't connect: " + err.message + ". Check that the URL is the Web app link ending in /exec, and that it's deployed with access set to \"Anyone\".");
+        }
+      }
 
-  document.getElementById("connectBtn").addEventListener("click", () => {
-    const url = document.getElementById("apiUrlInput").value.trim();
-    if(!url) return;
-    tryConnect(url);
-  });
+      document.getElementById("connectBtn").addEventListener("click", () => {
+        const url = document.getElementById("apiUrlInput").value.trim();
+        if (!url) return;
+        tryConnect(url);
+      });
 
-  document.getElementById("refreshBtn").addEventListener("click", async () => {
-    // If a save failed, retry THAT save first so the unsaved change isn't
-    // discarded by pulling stale data over it.
-    if(lastSaveFailed){
-      await pushSave();
-      if(lastSaveFailed) return; // still failing — leave local state as-is, don't overwrite it
-    }
-    setStatus("Loading…");
-    try{
-      await fetchAll();
-      setStatus("Synced");
-      populateGlobalSemester();
-      renderAllForTab(currentTabName());
-    }catch(err){
-      setStatus("Refresh failed — check connection", true);
-    }
-  });
-
-  function renderConnectedSheetInfo(){
-    const el = document.getElementById("connectedSheetLabel");
-    el.textContent = connectedSheetName ? `Connected to "${connectedSheetName}".` : "Connected.";
-  }
-
-  document.getElementById("copyBookmarkBtn").addEventListener("click", () => {
-    const fullLink = location.origin + location.pathname + "?api=" + encodeURIComponent(apiUrl);
-    if(navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(fullLink).then(
-        () => alert("Link copied. Bookmark it to always open straight into this sheet — even on another device."),
-        () => prompt("Copy this link:", fullLink)
-      );
-    } else {
-      prompt("Copy this link:", fullLink);
-    }
-  });
-
-  document.getElementById("backupNowBtn").addEventListener("click", async () => {
-    const btn = document.getElementById("backupNowBtn");
-    const resultEl = document.getElementById("backupResult");
-    btn.disabled = true; btn.textContent = "Backing up…";
-    try{
-      const data = await apiPost({ action: "backup" });
-      resultEl.hidden = false;
-      resultEl.innerHTML = `Backup saved to your Drive: <a href="${data.url}" target="_blank" rel="noopener">open it</a>.`;
-    }catch(err){
-      alert("Backup failed: " + err.message);
-    }finally{
-      btn.disabled = false; btn.textContent = "Backup now (copy to Drive)";
-    }
-  });
-
-  document.getElementById("changeSheetBtn").addEventListener("click", () => {
-    if(confirm("Disconnect from this Google Sheet? You can reconnect any time with the same or a different link.")){
-      try{ localStorage.removeItem(API_URL_KEY); }catch(e){}
-      history.replaceState(null, "", location.pathname);
-      apiUrl = null;
-      showConnect();
-    }
-  });
-
-  // ---------- Offline copies ----------
-  function downloadBlob(content, filename, type){
-    const blob = new Blob([content], { type });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = filename;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
-
-  document.getElementById("exportJson").addEventListener("click", () => {
-    downloadBlob(JSON.stringify(state, null, 2), `attendance-snapshot-${todayISO()}.json`, "application/json");
-  });
-
-  document.getElementById("exportCsv").addEventListener("click", () => {
-    const rows = [["Date","Subject Code","Subject Name","Type","Roll No","Student Name","Semester","Present"]];
-    [...state.sessions].sort((a,b)=>a.date.localeCompare(b.date)).forEach(s => {
-      const sub = state.subjects.find(x => x.id === s.subjectId) || { code:"", name:"General" };
-      sortedStudents().forEach(st => {
-        if(Object.prototype.hasOwnProperty.call(s.records, st.id)){
-          rows.push([s.date, sub.code, sub.name, s.type, st.roll, st.name, st.semester || '', s.records[st.id] ? "Y" : "N"]);
+      document.getElementById("refreshBtn").addEventListener("click", async () => {
+        // If a save failed, retry THAT save first so the unsaved change isn't
+        // discarded by pulling stale data over it.
+        if (lastSaveFailed) {
+          await pushSave();
+          if (lastSaveFailed) return; // still failing — leave local state as-is, don't overwrite it
+        }
+        setStatus("Loading…");
+        try {
+          await fetchAll();
+          setStatus("Synced");
+          populateGlobalSemester();
+          renderAllForTab(currentTabName());
+        } catch (err) {
+          setStatus("Refresh failed — check connection", true);
         }
       });
-    });
-    const csv = rows.map(r => r.map(cell => {
-      const v = String(cell);
-      return /[",\n]/.test(v) ? '"' + v.replace(/"/g,'""') + '"' : v;
-    }).join(",")).join("\n");
-    downloadBlob(csv, `attendance-records-${todayISO()}.csv`, "text/csv");
-  });
 
-  document.getElementById("importJsonBtn").addEventListener("click", () => document.getElementById("importFile").click());
-  document.getElementById("importFile").addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      try{
-        const parsed = JSON.parse(reader.result);
-        if(!Array.isArray(parsed.students) || !Array.isArray(parsed.sessions)) throw new Error("bad shape");
-        if(!confirm("This overwrites everything currently in your connected Google Sheet with this snapshot. Continue?")) return;
-        state = normalizeState(parsed);
-        populateGlobalSemester();
-        renderAllForTab("dashboard"); renderStudents(); renderSubjects(); renderHistory(); renderMarkTab(); renderReport();
-        pushSave();
-        alert("Snapshot restored and saved to your sheet.");
-      }catch(err){
-        alert("That file doesn't look like a valid snapshot.");
+      function renderConnectedSheetInfo() {
+        const el = document.getElementById("connectedSheetLabel");
+        el.textContent = connectedSheetName ? `Connected to "${connectedSheetName}".` : "Connected.";
       }
-      e.target.value = "";
-    };
-    reader.readAsText(file);
-  });
 
-  document.getElementById("resetData").addEventListener("click", () => {
-    if(confirm("Erase every student, subject and recorded class from your connected Google Sheet? This can't be undone.")){
-      if(confirm("Are you sure? Consider exporting a snapshot first.")){
-        state = { students: [], subjects: [], sessions: [], settings: Object.assign({}, DEFAULT_SETTINGS) };
-        populateGlobalSemester();
-        renderAllForTab("dashboard"); renderStudents(); renderSubjects(); renderHistory(); renderMarkTab(); renderReport();
-        pushSave();
+      document.getElementById("copyBookmarkBtn").addEventListener("click", () => {
+        const fullLink = location.origin + location.pathname + "?api=" + encodeURIComponent(apiUrl);
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(fullLink).then(
+            () => alert("Link copied. Bookmark it to always open straight into this sheet — even on another device."),
+            () => prompt("Copy this link:", fullLink)
+          );
+        } else {
+          prompt("Copy this link:", fullLink);
+        }
+      });
+
+      document.getElementById("backupNowBtn").addEventListener("click", async () => {
+        const btn = document.getElementById("backupNowBtn");
+        const resultEl = document.getElementById("backupResult");
+        btn.disabled = true; btn.textContent = "Backing up…";
+        try {
+          const data = await apiPost({ action: "backup" });
+          resultEl.hidden = false;
+          resultEl.innerHTML = `Backup saved to your Drive: <a href="${data.url}" target="_blank" rel="noopener">open it</a>.`;
+        } catch (err) {
+          alert("Backup failed: " + err.message);
+        } finally {
+          btn.disabled = false; btn.textContent = "Backup now (copy to Drive)";
+        }
+      });
+
+      document.getElementById("changeSheetBtn").addEventListener("click", () => {
+        if (confirm("Disconnect from this Google Sheet? You can reconnect any time with the same or a different link.")) {
+          try { localStorage.removeItem(API_URL_KEY); } catch (e) { }
+          history.replaceState(null, "", location.pathname);
+          apiUrl = null;
+          showConnect();
+        }
+      });
+
+      // ---------- Offline copies ----------
+      function downloadBlob(content, filename, type) {
+        const blob = new Blob([content], { type });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url; a.download = filename;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        URL.revokeObjectURL(url);
       }
-    }
-  });
 
-  // ---------- Init ----------
-  document.getElementById("todayLabel").textContent = formatDate(todayISO());
-  const initialUrl = resolveApiUrl();
-  if(initialUrl) tryConnect(initialUrl);
-  else showConnect();
+      document.getElementById("exportJson").addEventListener("click", () => {
+        downloadBlob(JSON.stringify(state, null, 2), `attendance-snapshot-${todayISO()}.json`, "application/json");
+      });
 
-})();
-</script>
+      document.getElementById("exportCsv").addEventListener("click", () => {
+        const rows = [["Date", "Subject Code", "Subject Name", "Type", "Roll No", "Student Name", "Semester", "Present"]];
+        [...state.sessions].sort((a, b) => a.date.localeCompare(b.date)).forEach(s => {
+          const sub = state.subjects.find(x => x.id === s.subjectId) || { code: "", name: "General" };
+          sortedStudents().forEach(st => {
+            if (Object.prototype.hasOwnProperty.call(s.records, st.id)) {
+              rows.push([s.date, sub.code, sub.name, s.type, st.roll, st.name, st.semester || '', s.records[st.id] ? "Y" : "N"]);
+            }
+          });
+        });
+        const csv = rows.map(r => r.map(cell => {
+          const v = String(cell);
+          return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+        }).join(",")).join("\n");
+        downloadBlob(csv, `attendance-records-${todayISO()}.csv`, "text/csv");
+      });
+
+      document.getElementById("importJsonBtn").addEventListener("click", () => document.getElementById("importFile").click());
+      document.getElementById("importFile").addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const parsed = JSON.parse(reader.result);
+            if (!Array.isArray(parsed.students) || !Array.isArray(parsed.sessions)) throw new Error("bad shape");
+            if (!confirm("This overwrites everything currently in your connected Google Sheet with this snapshot. Continue?")) return;
+            state = normalizeState(parsed);
+            populateGlobalSemester();
+            renderAllForTab("dashboard"); renderStudents(); renderSubjects(); renderHistory(); renderMarkTab(); renderReport();
+            pushSave();
+            alert("Snapshot restored and saved to your sheet.");
+          } catch (err) {
+            alert("That file doesn't look like a valid snapshot.");
+          }
+          e.target.value = "";
+        };
+        reader.readAsText(file);
+      });
+
+      document.getElementById("resetData").addEventListener("click", () => {
+        if (confirm("Erase every student, subject and recorded class from your connected Google Sheet? This can't be undone.")) {
+          if (confirm("Are you sure? Consider exporting a snapshot first.")) {
+            state = { students: [], subjects: [], sessions: [], settings: Object.assign({}, DEFAULT_SETTINGS) };
+            populateGlobalSemester();
+            renderAllForTab("dashboard"); renderStudents(); renderSubjects(); renderHistory(); renderMarkTab(); renderReport();
+            pushSave();
+          }
+        }
+      });
+
+      // ---------- Init ----------
+      document.getElementById("todayLabel").textContent = formatDate(todayISO());
+      const initialUrl = resolveApiUrl();
+      if (initialUrl) tryConnect(initialUrl);
+      else showConnect();
+
+    })();
+  </script>
 </body>
+
 </html>
