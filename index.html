@@ -536,8 +536,10 @@
 
   function sortedStudents(semester){
     const sem = semester !== undefined ? semester : activeSemester;
+    if(!sem || sem === '__all__') return [...state.students].sort((a,b) => a.roll.localeCompare(b.roll, undefined, {numeric:true}));
+    if(sem === '__unassigned__') return [...state.students].filter(s => !s.semester).sort((a,b) => a.roll.localeCompare(b.roll, undefined, {numeric:true}));
     return [...state.students]
-      .filter(s => !sem || s.semester === sem)
+      .filter(s => s.semester === sem)
       .sort((a,b) => a.roll.localeCompare(b.roll, undefined, {numeric:true}));
   }
   function sortedStudentsAll(){
@@ -589,11 +591,14 @@
     const sems = allSemesters();
     const prev = globalSemSelect.value;
     globalSemSelect.innerHTML = '';
+
+    // Always add "All semesters" at the top
+    const allOpt = document.createElement('option');
+    allOpt.value = '__all__'; allOpt.textContent = 'All semesters';
+    globalSemSelect.appendChild(allOpt);
+
     if(sems.length === 0){
-      const opt = document.createElement('option');
-      opt.value = ''; opt.textContent = 'No semesters yet — add students first';
-      globalSemSelect.appendChild(opt);
-      activeSemester = '';
+      activeSemester = '__all__';
       return;
     }
     sems.forEach(sem => {
@@ -602,8 +607,20 @@
       opt.textContent = 'Semester ' + sem;
       globalSemSelect.appendChild(opt);
     });
-    if(sems.includes(prev)) globalSemSelect.value = prev;
-    else globalSemSelect.value = sems[0];
+
+    // Add "Unassigned" if any students have no semester
+    const hasUnassigned = state.students.some(s => !s.semester);
+    if(hasUnassigned){
+      const uOpt = document.createElement('option');
+      uOpt.value = '__unassigned__'; uOpt.textContent = 'Unassigned (no semester)';
+      globalSemSelect.appendChild(uOpt);
+    }
+
+    if(prev && (sems.includes(prev) || prev === '__all__' || prev === '__unassigned__')){
+      globalSemSelect.value = prev;
+    } else {
+      globalSemSelect.value = sems[0];
+    }
     activeSemester = globalSemSelect.value;
   }
 
@@ -800,7 +817,9 @@
     const roll = rollInput.value.trim();
     const name = nameInput.value.trim();
     if(!roll || !name){ alert("Enter both a roll number and a name."); return; }
-    if(!activeSemester){ alert("Select a semester first using the semester selector above."); return; }
+    if(!activeSemester || activeSemester === '__all__' || activeSemester === '__unassigned__'){
+      alert("Switch to a specific semester first (not 'All semesters' or 'Unassigned') to add a student."); return;
+    }
     if(state.students.some(s => s.roll.toLowerCase() === roll.toLowerCase() && s.semester === activeSemester)){
       alert("That roll number is already on the list for this semester."); return;
     }
